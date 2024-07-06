@@ -1,0 +1,23 @@
+{
+  "name": "@julianfrank/opensource",
+  "version": "24.7.6",
+  "description": "My Open Source Projects",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julianfrank/opensource.git"
+  },
+  "keywords": [
+    "Julian",
+    "Frank"
+  ],
+  "author": "Julian Frank",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/julianfrank/opensource/issues"
+  },
+  "homepage": "https://github.com/julianfrank/opensource#readme"
+}
