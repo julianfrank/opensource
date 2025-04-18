@@ -5,8 +5,20 @@ interface Microphone {
     label: string;
 }
 
+interface StreamTarget {
+    // Required methods that a stream target must implement
+    setStream(stream: MediaStream | null): void;
+    start?(): void;
+    stop?(): void;
+    // Event handlers that will be called by MicManager
+    onStreamStart?: () => void;
+    onStreamStop?: () => void;
+    onStreamError?: (error: Error) => void;
+}
+
 type MicUIParameters = {
     rootElement?: HTMLElement;
+    streamTarget?: StreamTarget;
     onMicListChange?: (microphones: Microphone[]) => void;
     onStartRecording?: (stream: MediaStream) => void;
     onStopRecording?: () => void;
@@ -31,6 +43,8 @@ export class MicManager {
     private elements: MicUIElements | null = null;
     private startButton: HTMLDivElement | null = null;
     private stopButton: HTMLDivElement | null = null;
+    private streamTarget: StreamTarget | null = null;
+    private useDefaultAudioElement: boolean = true;
 
     constructor(params: MicUIParameters) {
         if (MicManager._instanceCreated) {
@@ -38,6 +52,47 @@ export class MicManager {
         }
         MicManager._instanceCreated = true;
         this.rootElement = params?.rootElement || document.body;
+        
+        if (params.streamTarget) {
+            this.setStreamTarget(params.streamTarget);
+        }
+    }
+
+    /**
+     * Sets a custom stream target for audio output
+     * @param target The stream target implementation
+     */
+    setStreamTarget(target: StreamTarget): void {
+        // If we have an active stream, we need to stop it first
+        if (this.stream) {
+            this.stopRecording();
+        }
+
+        this.streamTarget = target;
+        this.useDefaultAudioElement = false;
+
+        // If we have elements created, update the audio element visibility
+        if (this.elements) {
+            this.elements.audioElement.style.display = 'none';
+        }
+    }
+
+    /**
+     * Removes the custom stream target and reverts to using the default audio element
+     */
+    clearStreamTarget(): void {
+        // If we have an active stream, we need to stop it first
+        if (this.stream) {
+            this.stopRecording();
+        }
+
+        this.streamTarget = null;
+        this.useDefaultAudioElement = true;
+
+        // If we have elements created, restore the audio element visibility
+        if (this.elements) {
+            this.elements.audioElement.style.display = 'block';
+        }
     }
 
     async getMicrophoneList(): Promise<Microphone[]> {
@@ -85,7 +140,13 @@ export class MicManager {
             onStartRecording,
             onStopRecording,
             onAudioElementError,
+            streamTarget,
         } = params;
+
+        // Update streamTarget if provided
+        if (streamTarget) {
+            this.setStreamTarget(streamTarget);
+        }
 
         const micWidget = document.createElement("div");
         micWidget.classList.add("mic-widget");
@@ -113,6 +174,10 @@ export class MicManager {
 
         const audioElement = document.createElement("audio");
         audioElement.classList.add("audio-element");
+        // Hide audio element if using custom stream target
+        if (!this.useDefaultAudioElement) {
+            audioElement.style.display = 'none';
+        }
         micWidget.appendChild(audioElement);
 
         // Event Listeners
@@ -120,10 +185,6 @@ export class MicManager {
         startButton.addEventListener("click", async () => {
             try {
                 await this.startRecording(micList.value);
-                if (this.stream && this.elements) {
-                    this.elements.audioElement.srcObject = this.stream;
-                    this.elements.audioElement.play();
-                }
                 onStartRecording?.(this.stream!);
 
                 //Update UI Buttons
@@ -136,9 +197,6 @@ export class MicManager {
         });
 
         stopButton.addEventListener("click", () => {
-            if (this.elements) {
-                this.elements.audioElement.srcObject = null;
-            }
             this.stopRecording();
             onStopRecording?.();
             //Update UI Buttons
@@ -186,18 +244,48 @@ export class MicManager {
             },
         };
 
-        this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-        if (this.stream) {
-            this.stream.onaddtrack = (event: MediaStreamTrackEvent) => {
-                console.log("onaddtrack", event.track);
-            };
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            if (this.stream) {
+                this.stream.onaddtrack = (event: MediaStreamTrackEvent) => {
+                    console.log("onaddtrack", event.track);
+                };
+
+                // Handle stream routing based on target
+                if (this.streamTarget) {
+                    this.streamTarget.setStream(this.stream);
+                    this.streamTarget.start?.();
+                    this.streamTarget.onStreamStart?.();
+                } else if (this.useDefaultAudioElement && this.elements) {
+                    this.elements.audioElement.srcObject = this.stream;
+                    this.elements.audioElement.play();
+                }
+            }
+        } catch (error) {
+            console.error("Error starting recording:", error);
+            if (this.streamTarget) {
+                this.streamTarget.onStreamError?.(error instanceof Error ? error : new Error("Failed to start recording"));
+            }
+            throw error;
         }
     }
 
     private stopRecording(): void {
         console.log("stopRecording", this.stream);
         if (this.stream) {
+            // Stop all tracks
             this.stream.getTracks().forEach((track) => track.stop());
+            
+            // Handle stream cleanup based on target
+            if (this.streamTarget) {
+                this.streamTarget.setStream(null);
+                this.streamTarget.stop?.();
+                this.streamTarget.onStreamStop?.();
+            } else if (this.elements) {
+                this.elements.audioElement.srcObject = null;
+            }
+            
             this.stream = null;
         }
     }
@@ -213,3 +301,6 @@ export class MicManager {
 }
 
 export default MicManager;
+
+
+
