@@ -9,14 +9,12 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "2.0.0",
     "typescript": "5.7.2",
     "vite": "6.3.1",
-    "@vitejs/plugin-basic-ssl": "2.0.0"
+    "vite-plugin-css-injected-by-js": "3.5.2"
   },
-  "dependencies": {
-    
-  },
-  "exports":{
-    "default":"./dist.bundle.js"
+  "exports": {
+    "default": "./dist/js_audio_tools.js"
   }
 }
