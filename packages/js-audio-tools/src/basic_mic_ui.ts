@@ -16,6 +16,16 @@ interface StreamTarget {
     onStreamError?: (error: Error) => void;
 }
 
+interface WaveformConfig {
+    enabled?: boolean;
+    width?: number;
+    height?: number;
+    resolution?: number;
+    refreshRate?: number;
+    backgroundColor?: string;
+    waveformColor?: string;
+}
+
 type MicUIParameters = {
     rootElement?: HTMLElement;
     streamTarget?: StreamTarget;
@@ -26,6 +36,7 @@ type MicUIParameters = {
     onAudioElementError?: (error: Error) => void;
     startButtonText?: string;
     stopButtonText?: string;
+    waveform?: WaveformConfig;
 };
 
 type MicUIElements = {
@@ -36,6 +47,8 @@ type MicUIElements = {
     startButton: HTMLDivElement;
     stopButton: HTMLDivElement;
     audioElement: HTMLAudioElement;
+    waveformCanvas?: HTMLCanvasElement;
+    waveformContainer?: HTMLDivElement;
 };
 
 // Custom error types for better error handling
@@ -76,6 +89,20 @@ export class MicManager {
     private micListCache: Microphone[] | null = null;
     private micListCacheTimestamp: number = 0;
     private readonly MIC_LIST_CACHE_DURATION = 5000; // Cache duration in milliseconds
+
+    // Waveform visualization properties
+    private audioContext: AudioContext | null = null;
+    private analyser: AnalyserNode | null = null;
+    private waveformConfig: WaveformConfig = {
+        enabled: true,
+        width: 300,
+        height: 150,
+        resolution: 128,
+        refreshRate: 60,
+        backgroundColor: '#000000',
+        waveformColor: '#00ff00'
+    };
+    private animationFrameId: number | null = null;
 
     constructor(params: MicUIParameters) {
         if (MicManager._instanceCreated) {
@@ -231,11 +258,20 @@ export class MicManager {
             onStopRecording,
             onAudioElementError,
             streamTarget,
+            waveform,
         } = params;
 
         // Update streamTarget if provided
         if (streamTarget) {
             this.setStreamTarget(streamTarget);
+        }
+
+        // Update waveform configuration if provided
+        if (waveform) {
+            this.waveformConfig = {
+                ...this.waveformConfig,
+                ...waveform
+            };
         }
 
         const micWidget = document.createElement("div");
@@ -289,6 +325,22 @@ export class MicManager {
         }
         micWidget.appendChild(audioElement);
 
+        // Create waveform container and canvas if enabled
+        let waveformCanvas: HTMLCanvasElement | undefined;
+        let waveformContainer: HTMLDivElement | undefined;
+        
+        if (this.waveformConfig.enabled) {
+            waveformContainer = document.createElement("div");
+            waveformContainer.classList.add("waveform-container", "hidden");
+            micWidget.appendChild(waveformContainer);
+
+            waveformCanvas = document.createElement("canvas");
+            waveformCanvas.classList.add("waveform-canvas");
+            waveformCanvas.width = this.waveformConfig.width || 300;
+            waveformCanvas.height = this.waveformConfig.height || 150;
+            waveformContainer.appendChild(waveformCanvas);
+        }
+
         // Event Listeners with cleanup registration
         this.addEventListenerWithCleanup(
             micList,
@@ -300,6 +352,11 @@ export class MicManager {
             try {
                 await this.startRecording(micList.value);
                 onStartRecording?.(this.stream!);
+
+                // Set up waveform if enabled
+                if (this.waveformConfig.enabled && this.stream) {
+                    this.setupWaveform(this.stream);
+                }
 
                 //Update UI Buttons
                 startButton.style.display = "none";
@@ -342,6 +399,8 @@ export class MicManager {
             startButton,
             stopButton,
             audioElement,
+            waveformCanvas,
+            waveformContainer
         };
         return this.elements;
     }
@@ -403,6 +462,9 @@ export class MicManager {
     private stopRecording(): void {
         if (this.stream) {
             try {
+                // Stop waveform visualization if active
+                this.stopWaveform();
+
                 // Stop all tracks
                 this.stream.getTracks().forEach((track) => {
                     try {
@@ -425,6 +487,121 @@ export class MicManager {
             } finally {
                 this.stream = null;
             }
+        }
+    }
+
+    private setupWaveform(stream: MediaStream): void {
+        if (!this.waveformConfig.enabled || !this.elements?.waveformCanvas || !this.elements?.waveformContainer) {
+            return;
+        }
+
+        // Show the waveform container
+        this.elements.waveformContainer.classList.remove('hidden');
+
+        // Create audio context and analyzer if they don't exist
+        if (!this.audioContext) {
+            this.audioContext = new AudioContext();
+        }
+
+        // Create analyzer node
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = this.waveformConfig.resolution! * 2; // Must be power of 2
+
+        // Connect stream to analyzer
+        const source = this.audioContext.createMediaStreamSource(stream);
+        source.connect(this.analyser);
+
+        // Start animation loop
+        this.drawWaveform();
+    }
+
+    private drawWaveform(): void {
+        if (!this.waveformConfig.enabled || !this.analyser || !this.elements?.waveformCanvas) {
+            return;
+        }
+
+        const canvas = this.elements.waveformCanvas;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const bufferLength = this.analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        const draw = () => {
+            if (!this.analyser || !ctx) return;
+
+            this.animationFrameId = requestAnimationFrame(draw);
+            this.analyser.getByteTimeDomainData(dataArray);
+
+            // Clear canvas
+            ctx.fillStyle = this.waveformConfig.backgroundColor || '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw waveform
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = this.waveformConfig.waveformColor || '#00ff00';
+            ctx.beginPath();
+
+            const sliceWidth = canvas.width / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = (v * canvas.height) / 2;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+        };
+
+        // Start animation loop with specified refresh rate
+        if (this.waveformConfig.refreshRate && this.waveformConfig.refreshRate < 60) {
+            const interval = 1000 / this.waveformConfig.refreshRate;
+            setInterval(() => {
+                if (!this.animationFrameId) {
+                    draw();
+                }
+            }, interval);
+        } else {
+            draw();
+        }
+    }
+
+    private stopWaveform(): void {
+        if (this.animationFrameId !== null) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+
+        if (this.analyser) {
+            this.analyser.disconnect();
+            this.analyser = null;
+        }
+
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+
+        // Clear canvas if it exists and hide the container
+        if (this.elements?.waveformCanvas) {
+            const ctx = this.elements.waveformCanvas.getContext('2d');
+            if (ctx) {
+                ctx.clearRect(0, 0, this.elements.waveformCanvas.width, this.elements.waveformCanvas.height);
+            }
+        }
+
+        // Hide the waveform container
+        if (this.elements?.waveformContainer) {
+            this.elements.waveformContainer.classList.add('hidden');
         }
     }
 
@@ -455,6 +632,15 @@ export class MicManager {
 }
 
 export default MicManager;
+
+
+
+
+
+
+
+
+
 
 
 
