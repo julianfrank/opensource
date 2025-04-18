@@ -1,4 +1,4 @@
-import "./basic_mic_ui.css";
+import "./MicManager.css";
 
 interface Microphone {
     deviceId: string;
@@ -114,6 +114,7 @@ export class MicManager {
         if (params.streamTarget) {
             this.setStreamTarget(params.streamTarget);
         }
+        console.log(`Mic Manager\tVersion: 2025.4.18\tAuthor: Julian Frank`)
     }
 
     /**
