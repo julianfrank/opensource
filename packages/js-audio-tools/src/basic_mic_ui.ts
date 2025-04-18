@@ -95,12 +95,12 @@ export class MicManager {
     private analyser: AnalyserNode | null = null;
     private waveformConfig: WaveformConfig = {
         enabled: true,
-        width: 300,
-        height: 150,
-        resolution: 128,
-        refreshRate: 60,
-        backgroundColor: '#000000',
-        waveformColor: '#00ff00'
+        width: 64,
+        height: 32,
+        resolution: 32,
+        refreshRate: 1,
+        backgroundColor: "#000000",
+        waveformColor: "#00ff00",
     };
     private animationFrameId: number | null = null;
 
@@ -270,7 +270,7 @@ export class MicManager {
         if (waveform) {
             this.waveformConfig = {
                 ...this.waveformConfig,
-                ...waveform
+                ...waveform,
             };
         }
 
@@ -328,17 +328,41 @@ export class MicManager {
         // Create waveform container and canvas if enabled
         let waveformCanvas: HTMLCanvasElement | undefined;
         let waveformContainer: HTMLDivElement | undefined;
-        
+
         if (this.waveformConfig.enabled) {
+            // Create waveform container as a sibling to mic-widget
             waveformContainer = document.createElement("div");
             waveformContainer.classList.add("waveform-container", "hidden");
-            micWidget.appendChild(waveformContainer);
+            rootElement.appendChild(waveformContainer);
+
+            // Position the waveform container relative to the mic-widget
+            waveformContainer.style.position = "absolute";
+            waveformContainer.style.width = `${
+                this.waveformConfig.width || 300
+            }px`;
+            waveformContainer.style.display = "block"; // Ensure display is set
+            waveformContainer.style.visibility = "visible"; // Ensure visibility is set
 
             waveformCanvas = document.createElement("canvas");
             waveformCanvas.classList.add("waveform-canvas");
             waveformCanvas.width = this.waveformConfig.width || 300;
             waveformCanvas.height = this.waveformConfig.height || 150;
+            waveformCanvas.style.display = "block"; // Ensure canvas is displayed
             waveformContainer.appendChild(waveformCanvas);
+
+            // Force a reflow to ensure proper positioning
+            waveformContainer.offsetHeight;
+
+            // Update position initially and on window resize
+            this.updateWaveformPosition();
+            window.addEventListener("resize", this.updateWaveformPosition);
+
+            // Log waveform creation
+            console.log("Waveform container created:", {
+                width: waveformCanvas.width,
+                height: waveformCanvas.height,
+                containerWidth: waveformContainer.style.width,
+            });
         }
 
         // Event Listeners with cleanup registration
@@ -400,7 +424,7 @@ export class MicManager {
             stopButton,
             audioElement,
             waveformCanvas,
-            waveformContainer
+            waveformContainer,
         };
         return this.elements;
     }
@@ -490,89 +514,179 @@ export class MicManager {
         }
     }
 
+    private updateWaveformPosition = (): void => {
+        if (this.elements?.waveformContainer && this.elements?.micWidget) {
+            const micWidgetRect = this.elements.micWidget
+                .getBoundingClientRect();
+            this.elements.waveformContainer.style.left =
+                `${micWidgetRect.left}px`;
+            this.elements.waveformContainer.style.top = `${
+                micWidgetRect.bottom + 8
+            }px`; // 8px gap
+        }
+    };
+
     private setupWaveform(stream: MediaStream): void {
-        if (!this.waveformConfig.enabled || !this.elements?.waveformCanvas || !this.elements?.waveformContainer) {
+        if (!this.waveformConfig.enabled) {
+            console.log("Waveform visualization is disabled");
             return;
         }
 
-        // Show the waveform container
-        this.elements.waveformContainer.classList.remove('hidden');
-
-        // Create audio context and analyzer if they don't exist
-        if (!this.audioContext) {
-            this.audioContext = new AudioContext();
+        if (
+            !this.elements?.waveformCanvas || !this.elements?.waveformContainer
+        ) {
+            console.error("Waveform elements not found");
+            return;
         }
 
-        // Create analyzer node
-        this.analyser = this.audioContext.createAnalyser();
-        this.analyser.fftSize = this.waveformConfig.resolution! * 2; // Must be power of 2
+        try {
+            // Show the waveform container and ensure it's visible
+            this.elements.waveformContainer.classList.remove("hidden");
+            this.elements.waveformContainer.style.display = "block";
+            this.elements.waveformContainer.style.visibility = "visible";
 
-        // Connect stream to analyzer
-        const source = this.audioContext.createMediaStreamSource(stream);
-        source.connect(this.analyser);
+            // Force layout recalculation
+            this.elements.waveformContainer.offsetHeight;
 
-        // Start animation loop
-        this.drawWaveform();
+            // Create audio context if it doesn't exist
+            if (!this.audioContext) {
+                this.audioContext = new AudioContext();
+                console.log("Created new AudioContext");
+            }
+
+            // Create analyzer node with error checking
+            try {
+                this.analyser = this.audioContext.createAnalyser();
+                this.analyser.fftSize = this.waveformConfig.resolution! * 2; // Must be power of 2
+                console.log(
+                    "Analyzer created with fftSize:",
+                    this.analyser.fftSize,
+                );
+            } catch (error) {
+                console.error("Failed to create analyzer:", error);
+                return;
+            }
+
+            // Connect stream to analyzer with error checking
+            try {
+                const source = this.audioContext.createMediaStreamSource(
+                    stream,
+                );
+                source.connect(this.analyser);
+                console.log("Stream connected to analyzer");
+            } catch (error) {
+                console.error("Failed to connect stream to analyzer:", error);
+                return;
+            }
+
+            // Update waveform position
+            this.updateWaveformPosition();
+
+            // Start animation loop
+            console.log("Starting waveform animation");
+            this.drawWaveform();
+        } catch (error) {
+            console.error("Error in setupWaveform:", error);
+        }
     }
 
     private drawWaveform(): void {
-        if (!this.waveformConfig.enabled || !this.analyser || !this.elements?.waveformCanvas) {
+        if (!this.waveformConfig.enabled) {
+            console.log("Waveform visualization is disabled");
+            return;
+        }
+
+        if (!this.analyser || !this.elements?.waveformCanvas) {
+            console.error("Missing analyser or canvas element");
             return;
         }
 
         const canvas = this.elements.waveformCanvas;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            console.error("Failed to get canvas context.");
+            return;
+        }
+
+        // Ensure canvas dimensions are set correctly
+        canvas.width = this.waveformConfig.width || 300;
+        canvas.height = this.waveformConfig.height || 150;
 
         const bufferLength = this.analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
         const draw = () => {
-            if (!this.analyser || !ctx) return;
-
-            this.animationFrameId = requestAnimationFrame(draw);
-            this.analyser.getByteTimeDomainData(dataArray);
-
-            // Clear canvas
-            ctx.fillStyle = this.waveformConfig.backgroundColor || '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw waveform
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = this.waveformConfig.waveformColor || '#00ff00';
-            ctx.beginPath();
-
-            const sliceWidth = canvas.width / bufferLength;
-            let x = 0;
-
-            for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 128.0;
-                const y = (v * canvas.height) / 2;
-
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-
-                x += sliceWidth;
+            if (!this.analyser || !ctx) {
+                // console.warn("Analyser or context lost during animation. This can be ignored safely.");
+                return;
             }
 
-            ctx.lineTo(canvas.width, canvas.height / 2);
-            ctx.stroke();
+            try {
+                this.animationFrameId = requestAnimationFrame(draw);
+
+                // Get waveform data
+                this.analyser.getByteTimeDomainData(dataArray);
+
+                // Clear canvas with background color
+                ctx.fillStyle = this.waveformConfig.backgroundColor ||
+                    "#000000";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw waveform
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = this.waveformConfig.waveformColor ||
+                    "#00ff00";
+                ctx.beginPath();
+
+                const sliceWidth = canvas.width / bufferLength;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * canvas.height) / 2;
+
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+
+                    x += sliceWidth;
+                }
+
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+            } catch (error) {
+                console.error("Error in draw loop:", error);
+                if (this.animationFrameId) {
+                    cancelAnimationFrame(this.animationFrameId);
+                    this.animationFrameId = null;
+                }
+            }
         };
 
         // Start animation loop with specified refresh rate
-        if (this.waveformConfig.refreshRate && this.waveformConfig.refreshRate < 60) {
+        if (
+            this.waveformConfig.refreshRate &&
+            this.waveformConfig.refreshRate < 60
+        ) {
             const interval = 1000 / this.waveformConfig.refreshRate;
-            setInterval(() => {
-                if (!this.animationFrameId) {
+            let lastDraw = 0;
+
+            const throttledDraw = (timestamp: number) => {
+                if (!lastDraw || timestamp - lastDraw >= interval) {
                     draw();
+                    lastDraw = timestamp;
                 }
-            }, interval);
+                this.animationFrameId = requestAnimationFrame(throttledDraw);
+            };
+
+            this.animationFrameId = requestAnimationFrame(throttledDraw);
         } else {
             draw();
         }
+
+        console.log("Waveform drawing started");
     }
 
     private stopWaveform(): void {
@@ -593,20 +707,30 @@ export class MicManager {
 
         // Clear canvas if it exists and hide the container
         if (this.elements?.waveformCanvas) {
-            const ctx = this.elements.waveformCanvas.getContext('2d');
+            const ctx = this.elements.waveformCanvas.getContext("2d");
             if (ctx) {
-                ctx.clearRect(0, 0, this.elements.waveformCanvas.width, this.elements.waveformCanvas.height);
+                ctx.clearRect(
+                    0,
+                    0,
+                    this.elements.waveformCanvas.width,
+                    this.elements.waveformCanvas.height,
+                );
             }
         }
 
         // Hide the waveform container
         if (this.elements?.waveformContainer) {
-            this.elements.waveformContainer.classList.add('hidden');
+            this.elements.waveformContainer.classList.add("hidden");
         }
     }
 
     dispose(): void {
         this.stopRecording();
+
+        // Remove window resize event listener if it exists
+        if (this.elements?.waveformContainer) {
+            window.removeEventListener("resize", this.updateWaveformPosition);
+        }
 
         // Clean up all registered event listeners
         if (this.elements) {
@@ -614,6 +738,10 @@ export class MicManager {
             Object.values(this.elements).forEach((element) => {
                 if (element instanceof HTMLElement) {
                     this.removeEventListeners(element);
+                    // Remove the waveform container from DOM if it exists
+                    if (element === this.elements?.waveformContainer) {
+                        element.remove();
+                    }
                 }
             });
 
@@ -632,15 +760,3 @@ export class MicManager {
 }
 
 export default MicManager;
-
-
-
-
-
-
-
-
-
-
-
-
