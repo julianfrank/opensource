@@ -5,18 +5,51 @@
     margin: 0%;
     padding: 0%;
     display: flex;
+    align-items: center;
 }
 
-/* .start-button, .stop-button {
-    margin: 0;
-    padding: 0 0 0 0;
+.mic-settings-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.settings-button {
+    margin: 0.2rem;
+    padding: 0rem 0rem;
     height: 1rem;
     min-width: 1rem;
-    width: auto;
     text-align: center;
     display: flex;
     align-items: center;
-    justify-content: center; */
+    justify-content: center;
+    box-shadow: 0rem 0rem 0.5rem rgba(0,0,0,0.5);
+    transition: box-shadow 0.3s ease;
+    background-color: transparent;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.settings-button:hover {
+    box-shadow: inset 0rem 0rem 0.5rem rgba(0,0,0,0.5);
+}
+
+.mic-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-top: 0.2rem;
+}
+
+.mic-list-hidden {
+    display: none;
+}
+
 .start-button, .stop-button {
     margin: 0.2rem;
     padding: 0rem 0.2rem 0rem 0.2rem;
