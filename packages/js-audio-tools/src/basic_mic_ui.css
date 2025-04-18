@@ -1,3 +1,43 @@
-.mic-widget{
-    background-color: blueviolet;
+.mic-widget {
+    height: fit-content;
+    width: fit-content;
+    background-color: wheat;
+    margin: 0%;
+    padding: 0%;
+    display: flex;
+}
+
+/* .start-button, .stop-button {
+    margin: 0;
+    padding: 0 0 0 0;
+    height: 1rem;
+    min-width: 1rem;
+    width: auto;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center; */
+.start-button, .stop-button {
+    margin: 0.2rem;
+    padding: 0rem 0.2rem 0rem 0.2rem;
+    height: 1rem;
+    min-width: 1rem;
+    width: auto;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0rem 0rem 0.5rem rgba(0,0,0,0.5);
+    transition: box-shadow 1s ease;
+    background-color: transparent;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.stop-button{
+    display: none;
+}
+
+.start-button:hover, .stop-button:hover {
+    box-shadow: inset 0rem 0rem 0.5rem rgba(0,0,0,0.5);
 }

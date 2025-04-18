@@ -1,3 +1,5 @@
-import {MicUI} from "./src/main"
+import {MicManager} from "./src/main"
 console.log("Dev Script Running")
-MicUI.MicUI({rootElement:document.body})
+
+const mm=new MicManager({})
+mm.createMicUI({})
