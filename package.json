@@ -1,6 +1,6 @@
 {
   "name": "@julianfrank/opensource",
-  "version": "25.4.1912",
+  "version": "25.4.1913",
   "description": "My Open Source Projects",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/julianfrank/opensource#readme",
   "workspaces": [
-    "packages/beercss-mode-switch",
     "packages/js-audio-tools"
   ],
   "exports":{

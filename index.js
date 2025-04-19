@@ -1,5 +1,5 @@
-import js_audio_tools_bundle from "./packages/js-audio-tools/bundle/js_audio_tools_bundle.js"
+import {MicManager} from "./packages/js-audio-tools/bundle/js_audio_tools_bundle.js"
 
 export default {
-    js_audio_tools_bundle
+    MicManager
 }

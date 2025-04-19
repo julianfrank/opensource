@@ -16,6 +16,7 @@
     "vite-plugin-css-injected-by-js": "3.5.2"
   },
   "exports": {
-    "import":"./bundle/js_audio_tools.js"
+    "import":"./exporter.js",
+    "default":"./exporter.js"
   }
 }
