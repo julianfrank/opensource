@@ -21,6 +21,10 @@
   },
   "homepage": "https://github.com/julianfrank/opensource#readme",
   "workspaces": [
-    "packages/beercss-mode-switch"
-  ]
+    "packages/beercss-mode-switch",
+    "packages/js-audio-tools"
+  ],
+  "exports":{
+    "js-audio-tools":"./packages/js-audio-tools"
+  }
 }
