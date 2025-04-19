@@ -25,7 +25,7 @@ export default defineConfig({
                 "es", 
                 // "umd", 
                 // "iife", 
-                "cjs", 
+                // "cjs", 
                 // "system"
             ],
             fileName: "js_audio_tools_bundle",
