@@ -22,7 +22,7 @@ export default defineConfig({
             entry: "./src/main.ts",
             name: "js_audio_tools",
             formats: [
-                // "es", 
+                "es", 
                 // "umd", 
                 // "iife", 
                 "cjs", 

@@ -2,7 +2,7 @@
   "name": "@julianfrank/js-audio-tools",
   "private": true,
   "version": "2025.4.18",
-  "type": "commonjs",
+  "type": "module",
   "main": "exports.js",
   "scripts": {
     "dev": "vite",
@@ -16,6 +16,8 @@
     "vite-plugin-css-injected-by-js": "3.5.2"
   },
   "exports": {
-    "default": "./bundle/js_audio_tools.js"
+    "default": "./bundle/js_audio_tools.js",
+    "import":"./bundle/js_audio_tools.js",
+    "require": "./bundle/js_audio_tools.cjs"
   }
 }
