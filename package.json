@@ -1,6 +1,6 @@
 {
   "name": "@julianfrank/opensource",
-  "version": "25.4.199",
+  "version": "25.4.1910",
   "description": "My Open Source Projects",
   "main": "index.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "packages/js-audio-tools"
   ],
   "exports":{
-    "import":"./packages/js-audio-tools/bundle/js_audio_tools_bundle.js",
+    "import":"./index.js",
     "default":"./index.js"
   }
 }
