@@ -1,4 +1,6 @@
 import {MicManager} from "./MicManager"
 
+import {version} from "../package.json"
+
 export  {MicManager};
-console.log(`JS Audio Tools\tVersion: 2025.4.18\tAuthor: Julian Frank`)
+console.log(`JS Audio Tools\tVersion: ${version}\tAuthor: Julian Frank`)
