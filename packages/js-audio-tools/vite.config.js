@@ -16,7 +16,7 @@ export default defineConfig({
         https: true,
     },
     build: {
-        outDir: "dist",
+        outDir: "bundle",
         sourcemap: false,
         lib: {
             entry: "./src/main.ts",
