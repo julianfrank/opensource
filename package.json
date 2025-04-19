@@ -1,6 +1,6 @@
 {
   "name": "@julianfrank/opensource",
-  "version": "25.4.18",
+  "version": "25.4.19",
   "description": "My Open Source Projects",
   "main": "index.ts",
   "scripts": {
