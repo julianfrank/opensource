@@ -1,5 +1,7 @@
 import "./MicManager.css";
 
+import {version} from  "../package.json"
+
 interface Microphone {
     deviceId: string;
     label: string;
@@ -32,11 +34,11 @@ type MicUIParameters = {
     onMicListChange?: (microphones: Microphone[]) => void;
     onStartRecording?: (stream: MediaStream) => void;
     onStopRecording?: () => void;
-    onAudioElementChange?: (audioElement: HTMLAudioElement) => void;
     onAudioElementError?: (error: Error) => void;
     startButtonText?: string;
     stopButtonText?: string;
     waveform?: WaveformConfig;
+    showMicSettings?: boolean;
 };
 
 type MicUIElements = {
@@ -114,7 +116,7 @@ export class MicManager {
         if (params.streamTarget) {
             this.setStreamTarget(params.streamTarget);
         }
-        console.log(`Mic Manager\tVersion: 2025.4.18\tAuthor: Julian Frank`)
+        console.log(`Mic Manager\tVersion: ${version}\tAuthor: Julian Frank`)
     }
 
     /**
@@ -260,6 +262,7 @@ export class MicManager {
             onAudioElementError,
             streamTarget,
             waveform,
+            showMicSettings = false,
         } = params;
 
         // Update streamTarget if provided
@@ -282,6 +285,9 @@ export class MicManager {
         // Create a container for the mic list and settings button
         const micSettingsContainer = document.createElement("div");
         micSettingsContainer.classList.add("mic-settings-container");
+        if (!showMicSettings) {
+            micSettingsContainer.style.display = "none";
+        }
         micWidget.appendChild(micSettingsContainer);
 
         // Create settings button
@@ -359,11 +365,11 @@ export class MicManager {
             window.addEventListener("resize", this.updateWaveformPosition);
 
             // Log waveform creation
-            console.log("Waveform container created:", {
-                width: waveformCanvas.width,
-                height: waveformCanvas.height,
-                containerWidth: waveformContainer.style.width,
-            });
+            // console.log("Waveform container created:", {
+            //     width: waveformCanvas.width,
+            //     height: waveformCanvas.height,
+            //     containerWidth: waveformContainer.style.width,
+            // });
         }
 
         // Event Listeners with cleanup registration
@@ -529,7 +535,7 @@ export class MicManager {
 
     private setupWaveform(stream: MediaStream): void {
         if (!this.waveformConfig.enabled) {
-            console.log("Waveform visualization is disabled");
+            // console.log("Waveform visualization is disabled");
             return;
         }
 
@@ -552,17 +558,17 @@ export class MicManager {
             // Create audio context if it doesn't exist
             if (!this.audioContext) {
                 this.audioContext = new AudioContext();
-                console.log("Created new AudioContext");
+                // console.log("Created new AudioContext");
             }
 
             // Create analyzer node with error checking
             try {
                 this.analyser = this.audioContext.createAnalyser();
                 this.analyser.fftSize = this.waveformConfig.resolution! * 2; // Must be power of 2
-                console.log(
-                    "Analyzer created with fftSize:",
-                    this.analyser.fftSize,
-                );
+                // console.log(
+                //     "Analyzer created with fftSize:",
+                //     this.analyser.fftSize,
+                // );
             } catch (error) {
                 console.error("Failed to create analyzer:", error);
                 return;
@@ -574,7 +580,7 @@ export class MicManager {
                     stream,
                 );
                 source.connect(this.analyser);
-                console.log("Stream connected to analyzer");
+                // console.log("Stream connected to analyzer");
             } catch (error) {
                 console.error("Failed to connect stream to analyzer:", error);
                 return;
@@ -584,7 +590,7 @@ export class MicManager {
             this.updateWaveformPosition();
 
             // Start animation loop
-            console.log("Starting waveform animation");
+            // console.log("Starting waveform animation");
             this.drawWaveform();
         } catch (error) {
             console.error("Error in setupWaveform:", error);
@@ -593,7 +599,7 @@ export class MicManager {
 
     private drawWaveform(): void {
         if (!this.waveformConfig.enabled) {
-            console.log("Waveform visualization is disabled");
+            // console.log("Waveform visualization is disabled");
             return;
         }
 
@@ -687,7 +693,7 @@ export class MicManager {
             draw();
         }
 
-        console.log("Waveform drawing started");
+        // console.log("Waveform drawing started");
     }
 
     private stopWaveform(): void {
@@ -722,6 +728,93 @@ export class MicManager {
         // Hide the waveform container
         if (this.elements?.waveformContainer) {
             this.elements.waveformContainer.classList.add("hidden");
+        }
+    }
+
+    /**
+     * Enables or disables the mic settings interface
+     * @param enabled Whether the mic settings should be shown
+     */
+    toggleMicSettings(enabled: boolean): void {
+        if (!this.elements?.micSettingsContainer) {
+            console.warn("Mic settings container not initialized");
+            return;
+        }
+        this.elements.micSettingsContainer.style.display = enabled ? "flex" : "none";
+    }
+
+    /**
+     * Enables or disables the waveform visualization
+     * @param enabled Whether the waveform should be shown
+     */
+    toggleWaveform(enabled: boolean): void {
+        this.waveformConfig.enabled = enabled;
+        
+        if (!enabled) {
+            this.stopWaveform();
+        } else if (this.stream) {
+            // If we have an active stream, restart the waveform
+            this.setupWaveform(this.stream);
+        }
+    }
+
+    /**
+     * Sets custom styles for various UI components
+     * @param styles Object containing style configurations
+     */
+    setStyle(styles: {
+        backgroundColor?: string;
+        waveformColor?: string;
+        waveformBackgroundColor?: string;
+        buttonBackgroundColor?: string;
+        buttonShadowColor?: string;
+        micListBackgroundColor?: string;
+        micListBorderColor?: string;
+    }): void {
+        // Update waveform colors if provided
+        if (styles.waveformColor) {
+            this.waveformConfig.waveformColor = styles.waveformColor;
+        }
+        if (styles.waveformBackgroundColor) {
+            this.waveformConfig.backgroundColor = styles.waveformBackgroundColor;
+        }
+
+        if (!this.elements) {
+            console.warn("UI elements not initialized");
+            return;
+        }
+
+        // Apply background color to the widget
+        if (styles.backgroundColor) {
+            this.elements.micWidget.style.backgroundColor = styles.backgroundColor;
+        }
+
+        // Apply button styles
+        if (styles.buttonBackgroundColor || styles.buttonShadowColor) {
+            const buttons = [
+                this.elements.startButton,
+                this.elements.stopButton,
+                this.elements.settingsButton
+            ];
+
+            buttons.forEach(button => {
+                if (styles.buttonBackgroundColor) {
+                    button.style.backgroundColor = styles.buttonBackgroundColor;
+                }
+                if (styles.buttonShadowColor) {
+                    button.style.boxShadow = `0rem 0rem 0.5rem ${styles.buttonShadowColor}`;
+                }
+            });
+        }
+
+        // Apply mic list styles
+        if (styles.micListBackgroundColor || styles.micListBorderColor) {
+            if (styles.micListBackgroundColor) {
+                this.elements.micList.style.backgroundColor = styles.micListBackgroundColor;
+            }
+            if (styles.micListBorderColor) {
+                this.elements.micList.style.borderColor = styles.micListBorderColor;
+            }
         }
     }
 
@@ -761,3 +854,7 @@ export class MicManager {
 }
 
 export default MicManager;
+
+
+
+

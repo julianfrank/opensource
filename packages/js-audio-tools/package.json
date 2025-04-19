@@ -1,6 +1,6 @@
 {
   "name": "@julianfrank/js-audio-tools",
-  "private": true,
+  "private": false,
   "version": "2025.4.19",
   "type": "module",
   "main": "exports.js",
@@ -11,8 +11,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "2.0.0",
-    "typescript": "5.7.2",
-    "vite": "6.3.1",
+    "typescript": "5.8.3",
+    "vite": "6.3.2",
     "vite-plugin-css-injected-by-js": "3.5.2"
   },
   "exports": {

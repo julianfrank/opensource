@@ -1,6 +1,6 @@
 # MicManager Documentation
 
-The MicManager is a TypeScript library that provides a comprehensive interface for managing microphone input, audio recording, and waveform visualization in web applications. It offers a customizable UI component with microphone selection, recording controls, and real-time audio visualization.
+The MicManager is a TypeScript library (v2025.4.19) that provides a comprehensive interface for managing microphone input, audio recording, and waveform visualization in web applications. It offers a customizable UI component with microphone selection, recording controls, and real-time audio visualization.
 
 ## Table of Contents
 
@@ -12,33 +12,43 @@ The MicManager is a TypeScript library that provides a comprehensive interface f
 - [API Reference](#api-reference)
 - [Examples](#examples)
 - [Error Handling](#error-handling)
+- [Browser Support](#browser-support)
+- [Development](#development)
 
 ## Features
 
 - 🎤 Microphone device selection and management
 - 🎚️ Audio recording controls with start/stop functionality
-- 📊 Real-time waveform visualization
-- 🎯 Custom stream target support
-- 🎨 Customizable UI elements
-- 🔄 Automatic microphone list updates
-- ⚡ Efficient event handling and cleanup
+- 📊 Real-time waveform visualization with configurable parameters
+- 🎯 Custom stream target support for advanced audio processing
+- 🎨 Fully customizable UI elements with theming support
+- 🔄 Automatic microphone list updates with caching
+- ⚡ Efficient event handling and automatic resource cleanup
+- 🔒 Built-in error handling and type safety with TypeScript
+- 📱 Responsive design with mobile device support
 
 ## Installation
 
 ```bash
-npm install js-audio-tools
+npm install @julianfrank/opensource
 ```
 
 ## Basic Usage
 
-```typescript
-import { MicManager } from 'js-audio-tools';
+First, import the MicManager class:
 
-// Create a new MicManager instance
+```typescript
+import { MicManager } from '@julianfrank/opensource';
+```
+
+Then create a new instance and initialize the UI:
+
+```typescript
+// Create a new MicManager instance with default settings
 const micManager = new MicManager({
     rootElement: document.getElementById('mic-container'),
-    startButtonText: '🎙️',
-    stopButtonText: '🛑',
+    startButtonText: '🎙️ Start',
+    stopButtonText: '⏹️ Stop',
     onStartRecording: (stream) => {
         console.log('Recording started', stream);
     },
@@ -47,15 +57,28 @@ const micManager = new MicManager({
     }
 });
 
-// Create the UI
+// Initialize the UI with waveform visualization
 micManager.createMicUI({
     waveform: {
         enabled: true,
         width: 300,
         height: 150,
         backgroundColor: '#000000',
-        waveformColor: '#00ff00'
+        waveformColor: '#00ff00',
+        resolution: 32,
+        refreshRate: 30
     }
+});
+
+// Optional: Customize the appearance
+micManager.setStyle({
+    backgroundColor: '#f0f0f0',
+    waveformColor: '#ff0000',
+    waveformBackgroundColor: '#333333',
+    buttonBackgroundColor: '#ffffff',
+    buttonShadowColor: 'rgba(0,0,0,0.3)',
+    micListBackgroundColor: '#ffffff',
+    micListBorderColor: '#cccccc'
 });
 ```
 
@@ -215,6 +238,45 @@ dispose(): void
 
 Cleans up resources and removes UI elements.
 
+#### toggleMicSettings
+
+```typescript
+toggleMicSettings(enabled: boolean): void
+```
+
+Enables or disables the microphone settings interface.
+
+#### toggleWaveform
+
+```typescript
+toggleWaveform(enabled: boolean): void
+```
+
+Enables or disables the waveform visualization. If disabled while recording, the waveform will stop; if enabled while recording, the waveform will start.
+
+#### setStyle
+
+```typescript
+setStyle(styles: {
+    backgroundColor?: string;
+    waveformColor?: string;
+    waveformBackgroundColor?: string;
+    buttonBackgroundColor?: string;
+    buttonShadowColor?: string;
+    micListBackgroundColor?: string;
+    micListBorderColor?: string;
+}): void
+```
+
+Sets custom styles for various UI components. All parameters are optional:
+- `backgroundColor`: Background color of the main widget
+- `waveformColor`: Color of the waveform line
+- `waveformBackgroundColor`: Background color of the waveform canvas
+- `buttonBackgroundColor`: Background color of all buttons
+- `buttonShadowColor`: Shadow color for all buttons
+- `micListBackgroundColor`: Background color of the microphone selection dropdown
+- `micListBorderColor`: Border color of the microphone selection dropdown
+
 ## Examples
 
 ### Basic Recording with Waveform
@@ -243,6 +305,42 @@ const ui = micManager.createMicUI({
         console.log('Recording stopped');
     }
 });
+```
+
+### Custom UI Configuration
+
+```typescript
+const micManager = new MicManager({
+    rootElement: document.getElementById('mic-container')
+});
+
+const ui = micManager.createMicUI({
+    startButtonText: '🎙️ Start',
+    stopButtonText: '⏹️ Stop',
+    waveform: {
+        enabled: true,
+        width: 300,
+        height: 150
+    }
+});
+
+// Customize the appearance
+micManager.setStyle({
+    backgroundColor: '#f0f0f0',
+    waveformColor: '#ff0000',
+    waveformBackgroundColor: '#333333',
+    buttonBackgroundColor: '#ffffff',
+    buttonShadowColor: 'rgba(0,0,0,0.3)',
+    micListBackgroundColor: '#ffffff',
+    micListBorderColor: '#cccccc'
+});
+
+// Toggle UI components
+micManager.toggleMicSettings(true);  // Show mic settings
+micManager.toggleWaveform(false);    // Hide waveform
+
+// Later, when recording starts
+micManager.toggleWaveform(true);     // Show waveform during recording
 ```
 
 ### Custom Stream Target
@@ -320,6 +418,34 @@ try {
 }
 ```
 
+## Development
+
+### Prerequisites
+
+- Node.js (Latest LTS version recommended)
+- npm or yarn
+
+### Setup
+
+1. Clone the repository
+2. Install dependencies:
+```bash
+npm install
+```
+
+### Available Scripts
+
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+
+### Dependencies
+
+- TypeScript 5.8.3
+- Vite 6.3.2
+- @vitejs/plugin-basic-ssl 2.0.0
+- vite-plugin-css-injected-by-js 3.5.2
+
 ## Best Practices
 
 1. **Singleton Usage**: Only one MicManager instance should exist at a time.
@@ -327,6 +453,8 @@ try {
 3. **Error Handling**: Implement proper error handling using the provided error types.
 4. **Stream Target**: Use custom stream targets for advanced audio processing.
 5. **Waveform Configuration**: Adjust waveform settings based on performance requirements.
+6. **Mobile Support**: Test on various devices and screen sizes.
+7. **Memory Management**: Properly dispose of instances to prevent memory leaks.
 
 ## Browser Support
 
@@ -336,4 +464,16 @@ MicManager requires browsers that support:
 - Web Audio API
 - Canvas API
 
-Most modern browsers (Chrome, Firefox, Safari, Edge) support these features.
+Supported Browsers:
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## License
+
+This project is licensed under the MIT License.
+
+
+
+
