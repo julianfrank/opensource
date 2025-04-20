@@ -20,7 +20,7 @@ export default defineConfig({
         sourcemap: false,
         lib: {
             entry: "./src/main.ts",
-            name: "js_audio_tools",
+            name: "mic_manager",
             formats: [
                 "es", 
                 // "umd", 
@@ -28,7 +28,7 @@ export default defineConfig({
                 // "cjs", 
                 // "system"
             ],
-            fileName: "js_audio_tools_bundle",
+            fileName: "mic_manager_bundle",
         },
         rollupOptions: {
             external: [],

@@ -1,10 +1,10 @@
 {
   "name": "@julianfrank/opensource",
-  "version": "25.4.1914",
-  "description": "My Open Source Projects",
+  "version": "25.4.200",
+  "description": "Open Source Projects from Julian Frank",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test"
+    
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/julianfrank/opensource#readme",
   "workspaces": [
-    "packages/js-audio-tools"
+    "packages/mic_manager"
   ],
   "exports":{
     "import":"./index.js",

@@ -1,4 +1,4 @@
-import {MicManager} from "./packages/js-audio-tools/bundle/js_audio_tools_bundle.js"
+import {MicManager} from "./packages/mic_manager/bundle/mic_manager_bundle.js"
 
 export default {
     MicManager

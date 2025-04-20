@@ -1,6 +1,6 @@
 # MicManager Documentation
 
-The MicManager is a TypeScript library (v2025.4.19) that provides a comprehensive interface for managing microphone input, audio recording, and waveform visualization in web applications. It offers a customizable UI component with microphone selection, recording controls, and real-time audio visualization.
+The MicManager is a TypeScript library (v2025.4.20) that provides a comprehensive interface for managing microphone input, audio recording, and waveform visualization in web applications. It offers a customizable UI component with microphone selection, recording controls, and real-time audio visualization.
 
 ## Table of Contents
 
