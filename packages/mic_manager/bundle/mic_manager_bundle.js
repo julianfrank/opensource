@@ -1,8 +1,8 @@
 (function(){"use strict";try{if(typeof document<"u"){var e=document.createElement("style");e.appendChild(document.createTextNode(".mic-widget{position:relative;height:fit-content;width:fit-content;min-width:4rem;min-height:2rem;margin:0%;padding:0%;display:flex;flex-direction:row;align-items:center;justify-content:flex-start}.mic-controls{display:flex;align-items:center;width:100%}.waveform-container{position:absolute;top:100%;left:0;width:100%;margin-top:.5rem;padding:.5rem;background-color:#0000001a;border-radius:.25rem;box-shadow:inset 0 0 .5rem #0003;transition:opacity 1s ease-in-out;opacity:1;z-index:1000;pointer-events:auto;visibility:visible;display:block}.waveform-container.hidden{opacity:0;pointer-events:none;visibility:hidden;display:none}.waveform-canvas{display:block;background-color:#000;border-radius:.25rem;width:100%;height:auto;image-rendering:pixelated}.mic-settings-container{position:relative;display:flex;align-items:center}.settings-button{margin:.2rem;padding:0;height:1.5rem;width:1.5rem;line-height:1.5rem;text-align:center;display:inline-block;box-shadow:0 0 .5rem #00000080;transition:box-shadow .3s ease;background-color:transparent;border-radius:.25rem;cursor:pointer;-webkit-user-select:none;user-select:none}.settings-button:hover{box-shadow:inset 0 0 .5rem #00000080}.mic-list{position:absolute;top:100%;left:0;z-index:1000;background-color:#fff;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 2px 4px #0003;margin-top:.2rem}.mic-list-hidden{display:none}.start-button,.stop-button{margin:.2rem;padding:0;height:1.5rem;min-width:1.5rem;line-height:1.5rem;text-align:center;display:inline-block;box-shadow:0 0 .5rem #00000080;transition:box-shadow .3s ease;background-color:transparent;border-radius:.25rem;cursor:pointer;-webkit-user-select:none;user-select:none}.stop-button{display:none}.start-button:hover,.stop-button:hover{box-shadow:inset 0 0 .5rem #00000080}")),document.head.appendChild(e)}}catch(t){console.error("vite-plugin-css-injected-by-js",t)}})();
-var A = Object.defineProperty;
-var F = (g, e, t) => e in g ? A(g, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : g[e] = t;
-var n = (g, e, t) => F(g, typeof e != "symbol" ? e + "" : e, t);
-const W = "2025.4.20";
+var W = Object.defineProperty;
+var A = (g, e, t) => e in g ? W(g, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : g[e] = t;
+var n = (g, e, t) => A(g, typeof e != "symbol" ? e + "" : e, t);
+const M = "2025.4.21";
 class k extends Error {
   constructor(e) {
     super(e), this.name = "MicManagerError";
@@ -54,7 +54,7 @@ const b = class b {
     });
     if (b._instanceCreated)
       throw new k("MicManager instance already created");
-    b._instanceCreated = !0, this.rootElement = (e == null ? void 0 : e.rootElement) || document.body, e.streamTarget && this.setStreamTarget(e.streamTarget), console.log(`Mic Manager	Version: ${W}	Author: Julian Frank`);
+    b._instanceCreated = !0, this.rootElement = (e == null ? void 0 : e.rootElement) || document.body, e.streamTarget && this.setStreamTarget(e.streamTarget), console.log(`Mic Manager	Version: ${M}	Author: Julian Frank`);
   }
   /**
    * Safely adds an event listener and stores it for cleanup
@@ -176,9 +176,9 @@ const b = class b {
       var y;
       this.updateMicList(C, u), (y = e.onMicListChange) == null || y.call(e, u);
     }).catch((u) => {
-      var S;
+      var B;
       const y = u instanceof Error ? new L(u.message) : new L("Failed to initialize microphone list");
-      (S = e.onAudioElementError) == null || S.call(e, y);
+      (B = e.onAudioElementError) == null || B.call(e, y);
     }), this.elements = {
       micWidget: h,
       micSettingsContainer: E,
@@ -358,8 +358,7 @@ const b = class b {
   }
 };
 n(b, "_instanceCreated", !1);
-let B = b;
-console.log(`JS Audio Tools	Version: ${W}	Author: Julian Frank`);
+let S = b;
 export {
-  B as MicManager
+  S as default
 };

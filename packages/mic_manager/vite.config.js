@@ -19,7 +19,7 @@ export default defineConfig({
         outDir: "bundle",
         sourcemap: false,
         lib: {
-            entry: "./src/main.ts",
+            entry: "./src/MicManager.ts",
             name: "mic_manager",
             formats: [
                 "es", 
@@ -30,6 +30,7 @@ export default defineConfig({
             ],
             fileName: "mic_manager_bundle",
         },
+        target:"modules",
         rollupOptions: {
             external: [],
             output: {

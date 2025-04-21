@@ -75,7 +75,7 @@ class DeviceError extends MicManagerError {
     }
 }
 
-export class MicManager {
+class MicManager {
     private stream: MediaStream | null = null;
     private rootElement: HTMLElement;
     private static _instanceCreated = false;

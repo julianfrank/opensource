@@ -3,8 +3,8 @@
   "private": false,
   "version": "2025.4.21",
   "type": "module",
-  "main": "exports.js",
-  "types": "index.d.ts",
+  "main": "./bundle/mic_manager_bundle.js",
+  "types": "./MicManager.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -17,20 +17,17 @@
     "vite-plugin-css-injected-by-js": "3.5.2"
   },
   "exports": {
-    "import": {
-      "types": "./index.d.ts",
-      "default": "./exporter.ts"
-    },
-    "default": {
-      "types": "./index.d.ts",
-      "default": "./exporter.ts"
+    ".": {
+      "types": "./MicManager.d.ts",
+      "default": "./bundle/mic_manager_bundle.js"
     }
   },
   "files": [
     "bundle",
-    "exporter.ts",
-    "index.d.ts",
-    "src/MicManager.d.ts"
-  ]
+    "src/MicManager.ts",
+    "MicManager.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
-

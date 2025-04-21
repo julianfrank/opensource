@@ -1,5 +1,5 @@
 // this is just a sample code for dev purpose 
-import {MicManager} from "./src/main"
+import MicManager from "../mic_manager/bundle/mic_manager_bundle"
 console.log("Dev Script Running")
 
 // amazonq-ignore-next-line
