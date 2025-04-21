@@ -1,7 +1,7 @@
 {
   "name": "@julianfrank/micmanager",
   "private": false,
-  "version": "2025.4.21",
+  "version": "2025.4.210",
   "type": "module",
   "main": "./bundle/mic_manager_bundle.js",
   "types": "./MicManager.d.ts",
@@ -29,5 +29,10 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "homepage": "https://github.com/julianfrank/opensource/packages/mic_manager",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julianfrank/opensource.git"
   }
 }
