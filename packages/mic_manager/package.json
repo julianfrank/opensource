@@ -1,9 +1,10 @@
 {
   "name": "@julianfrank/micmanager",
   "private": false,
-  "version": "2025.4.20",
+  "version": "2025.4.21",
   "type": "module",
   "main": "exports.js",
+  "types": "index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -16,7 +17,20 @@
     "vite-plugin-css-injected-by-js": "3.5.2"
   },
   "exports": {
-    "import":"./exporter.js",
-    "default":"./exporter.js"
-  }
+    "import": {
+      "types": "./index.d.ts",
+      "default": "./exporter.js"
+    },
+    "default": {
+      "types": "./index.d.ts",
+      "default": "./exporter.js"
+    }
+  },
+  "files": [
+    "bundle",
+    "exporter.js",
+    "index.d.ts",
+    "src/MicManager.d.ts"
+  ]
 }
+

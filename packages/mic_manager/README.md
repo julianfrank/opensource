@@ -1,12 +1,13 @@
 # MicManager Documentation
 
-The MicManager is a TypeScript library (v2025.4.20) that provides a comprehensive interface for managing microphone input, audio recording, and waveform visualization in web applications. It offers a customizable UI component with microphone selection, recording controls, and real-time audio visualization.
+The MicManager is a TypeScript library (v2025.4.21) that provides a comprehensive interface for managing microphone input, audio recording, and waveform visualization in web applications. It offers a customizable UI component with microphone selection, recording controls, and real-time audio visualization.
 
 ## Table of Contents
 
 - [Features](#features)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
+- [TypeScript Support](#typescript-support)
 - [Architecture](#architecture)
 - [Interfaces](#interfaces)
 - [API Reference](#api-reference)
@@ -30,7 +31,7 @@ The MicManager is a TypeScript library (v2025.4.20) that provides a comprehensiv
 ## Installation
 
 ```bash
-npm install @julianfrank/opensource
+npm install @julianfrank/micmanager
 ```
 
 ## Basic Usage
@@ -38,7 +39,7 @@ npm install @julianfrank/opensource
 First, import the MicManager class:
 
 ```typescript
-import { MicManager } from '@julianfrank/opensource';
+import { MicManager } from '@julianfrank/micmanager';
 ```
 
 Then create a new instance and initialize the UI:
@@ -82,31 +83,102 @@ micManager.setStyle({
 });
 ```
 
+## TypeScript Support
+
+MicManager comes with full TypeScript support. The package includes type definitions for all classes, interfaces, and methods.
+
+### Using Types in Your Project
+
+```typescript
+import { MicManager, MicUIParameters, StreamTarget, WaveformConfig } from '@julianfrank/micmanager';
+
+// Create a strongly-typed configuration
+const config: MicUIParameters = {
+    rootElement: document.getElementById('mic-container') as HTMLElement,
+    waveform: {
+        enabled: true,
+        width: 300,
+        height: 150
+    }
+};
+
+// Create a custom stream target with proper typing
+class CustomAudioProcessor implements StreamTarget {
+    setStream(stream: MediaStream | null): void {
+        // Implementation
+    }
+    
+    start(): void {
+        // Implementation
+    }
+    
+    stop(): void {
+        // Implementation
+    }
+}
+
+const micManager = new MicManager(config);
+micManager.setStreamTarget(new CustomAudioProcessor());
+```
+
+### Available Types
+
+The package exports the following types:
+
+- `MicManager` - The main class
+- `Microphone` - Interface for microphone device information
+- `StreamTarget` - Interface for custom audio stream handlers
+- `WaveformConfig` - Interface for waveform visualization configuration
+- `MicUIParameters` - Interface for UI configuration parameters
+- `MicUIElements` - Interface for created UI elements
+- `MicManagerError`, `StreamError`, `DeviceError` - Error classes
+
 ## Architecture
 
 ```mermaid
 classDiagram
     class MicManager {
-        -stream: MediaStream
+        -stream: MediaStream | null
         -rootElement: HTMLElement
-        -elements: MicUIElements
-        -streamTarget: StreamTarget
+        -elements: MicUIElements | null
+        -streamTarget: StreamTarget | null
+        -useDefaultAudioElement: boolean
+        -eventListeners: Map
+        -micListCache: Microphone[] | null
+        -micListCacheTimestamp: number
+        -audioContext: AudioContext | null
+        -analyser: AnalyserNode | null
+        -waveformConfig: WaveformConfig
+        -animationFrameId: number | null
         +constructor(params: MicUIParameters)
-        +createMicUI(params: MicUIParameters)
-        +setStreamTarget(target: StreamTarget)
-        +clearStreamTarget()
-        +getMicrophoneList()
-        +dispose()
+        +createMicUI(params: MicUIParameters): MicUIElements
+        +setStreamTarget(target: StreamTarget): void
+        +clearStreamTarget(): void
+        +getMicrophoneList(): Promise<Microphone[]>
+        +toggleMicSettings(enabled: boolean): void
+        +toggleWaveform(enabled: boolean): void
+        +setStyle(styles: object): void
+        +dispose(): void
+        -addEventListenerWithCleanup(element, type, listener): void
+        -removeEventListeners(element): void
+        -updateMicList(micList, microphones): void
+        -handleMicChange(): Promise<void>
+        -startRecording(deviceId): Promise<void>
+        -stopRecording(): void
+        -updateWaveformPosition(): void
+        -setupWaveform(stream): void
+        -drawWaveform(): void
+        -stopWaveform(): void
     }
 
     class StreamTarget {
         <<interface>>
-        +setStream(stream: MediaStream)
-        +start()?
-        +stop()?
-        +onStreamStart()?
-        +onStreamStop()?
-        +onStreamError(error: Error)?
+        +setStream(stream: MediaStream | null): void
+        +start?(): void
+        +stop?(): void
+        +onStreamStart?(): void
+        +onStreamStop?(): void
+        +onStreamError?(error: Error): void
     }
 
     class MicUIElements {
@@ -122,8 +194,37 @@ classDiagram
         +waveformContainer?: HTMLDivElement
     }
 
+    class WaveformConfig {
+        <<interface>>
+        +enabled?: boolean
+        +width?: number
+        +height?: number
+        +resolution?: number
+        +refreshRate?: number
+        +backgroundColor?: string
+        +waveformColor?: string
+    }
+
+    class MicManagerError {
+        +name: string
+        +constructor(message: string)
+    }
+
+    class StreamError {
+        +name: string
+        +constructor(message: string)
+    }
+
+    class DeviceError {
+        +name: string
+        +constructor(message: string)
+    }
+
     MicManager --> StreamTarget : uses
     MicManager --> MicUIElements : creates
+    MicManager --> WaveformConfig : configures
+    StreamError --|> MicManagerError : extends
+    DeviceError --|> MicManagerError : extends
 ```
 
 ## Interfaces
@@ -137,11 +238,11 @@ interface MicUIParameters {
     onMicListChange?: (mics: Microphone[]) => void;  // Microphone list update callback
     onStartRecording?: (stream: MediaStream) => void; // Recording start callback
     onStopRecording?: () => void;          // Recording stop callback
-    onAudioElementChange?: (audio: HTMLAudioElement) => void;
     onAudioElementError?: (error: Error) => void;
     startButtonText?: string;               // Custom start button text
     stopButtonText?: string;                // Custom stop button text
     waveform?: WaveformConfig;             // Waveform visualization config
+    showMicSettings?: boolean;             // Whether to show mic settings by default
 }
 ```
 
@@ -317,6 +418,7 @@ const micManager = new MicManager({
 const ui = micManager.createMicUI({
     startButtonText: '🎙️ Start',
     stopButtonText: '⏹️ Stop',
+    showMicSettings: true,
     waveform: {
         enabled: true,
         width: 300,
@@ -473,6 +575,12 @@ Supported Browsers:
 ## License
 
 This project is licensed under the MIT License.
+
+
+
+
+
+
 
 
 

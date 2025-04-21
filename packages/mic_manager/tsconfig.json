@@ -11,7 +11,10 @@
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationDir": "./",
+    "emitDeclarationOnly": true,
 
     /* Linting */
     "strict": true,
@@ -20,5 +23,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "index.ts"],
+  "exclude": ["node_modules"]
 }
+
