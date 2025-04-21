@@ -19,16 +19,16 @@
   "exports": {
     "import": {
       "types": "./index.d.ts",
-      "default": "./exporter.js"
+      "default": "./exporter.ts"
     },
     "default": {
       "types": "./index.d.ts",
-      "default": "./exporter.js"
+      "default": "./exporter.ts"
     }
   },
   "files": [
     "bundle",
-    "exporter.js",
+    "exporter.ts",
     "index.d.ts",
     "src/MicManager.d.ts"
   ]

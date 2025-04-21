@@ -1,8 +1,8 @@
 {
   "name": "@julianfrank/opensource",
-  "version": "25.4.210",
+  "version": "25.4.211",
   "description": "Open Source Projects from Julian Frank",
-  "main": "index.js",
+  "main": "index.ts",
   "types": "index.d.ts",
   "scripts": {
     
@@ -27,11 +27,11 @@
   "exports": {
     "import": {
       "types": "./index.d.ts",
-      "default": "./index.js"
+      "default": "./index.ts"
     },
     "default": {
       "types": "./index.d.ts",
-      "default": "./index.js"
+      "default": "./index.ts"
     }
   }
 }

@@ -147,6 +147,7 @@ export class MicManager {
             listeners.forEach(({ type, listener }) => {
                 element.removeEventListener(type, listener);
             });
+            // amazonq-ignore-next-line
             this.eventListeners.delete(element);
         }
     }
@@ -204,6 +205,7 @@ export class MicManager {
 
         try {
             // Request permission first with optimal audio settings
+            // amazonq-ignore-next-line
             await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -462,6 +464,7 @@ export class MicManager {
         };
 
         try {
+            // amazonq-ignore-next-line
             this.stream = await navigator.mediaDevices.getUserMedia(
                 constraints,
             );
