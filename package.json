@@ -1,8 +1,9 @@
 {
   "name": "@julianfrank/opensource",
-  "version": "25.4.21",
+  "version": "25.4.210",
   "description": "Open Source Projects from Julian Frank",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     
   },
@@ -23,8 +24,15 @@
   "workspaces": [
     "packages/mic_manager"
   ],
-  "exports":{
-    "import":"./index.js",
-    "default":"./index.js"
+  "exports": {
+    "import": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "default": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
   }
 }
+
