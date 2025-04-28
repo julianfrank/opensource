@@ -1,0 +1,38 @@
+{
+  "name": "@julianfrank/gum2novasonic",
+  "private": false,
+  "version": "2025.4.28",
+  "type": "module",
+  "main": "./bundle/gum2novasonic_bundle.js",
+  "types": "./Gum2NovaSonic.d.ts",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "2.0.0",
+    "typescript": "5.8.3",
+    "vite": "6.3.2",
+    "vite-plugin-css-injected-by-js": "3.5.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./Gum2NovaSonic.d.ts",
+      "default": "./bundle/gum2novasonic_bundle.js"
+    }
+  },
+  "files": [
+    "bundle",
+    "src/Gum2NovaSonic.ts",
+    "Gum2NovaSonic.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/julianfrank/opensource/packages/mic_manager",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julianfrank/opensource.git"
+  }
+}
