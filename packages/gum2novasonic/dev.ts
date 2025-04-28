@@ -1,7 +1,7 @@
 // this is just a sample code for dev purpose 
 import MicManager from "../mic_manager/src/MicManager"
 
-import {Gum2NovaSonic} from "./src/Gum2NovaSonic"
+import {Gum2NovaSonic} from "./src/GUM2NovaSonic"
 console.log("Dev Script Running")
 
 // amazonq-ignore-next-line
