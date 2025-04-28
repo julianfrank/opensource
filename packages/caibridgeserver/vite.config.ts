@@ -1,11 +1,20 @@
 import type { UserConfig } from "vite";
 
 export default {
-    root:"src/ui",
-    publicDir:"public",
+    publicDir: "public",
     server: {
         port: 4321,
         strictPort: true,
-        open: "src/ui/index.html",
-    }
+        open:"index.html"
+    },
+    build: {
+        lib: {
+            entry: "src/server/server.ts",
+            name: "index",
+            fileName: "index",
+            formats: ["es"],
+        },
+    },
+    appType: "custom",
+    logLevel:"info"
 } satisfies UserConfig;
