@@ -15,6 +15,7 @@ export class Gum2NovaSonic {
     version: string;
     gumStream: MediaStream | null = null;
     selectedTrack: MediaStreamTrack | null = null;
+    sioSocket: Socket | null = null;
 
     constructor() {
         this.version = version;
@@ -109,6 +110,7 @@ export class Gum2NovaSonic {
 
     attachSIOSocket(sioSocket: Socket) {
         console.log(`Attaching SIO Socket`, { sioSocket });
+        this.sioSocket = sioSocket;
         sioSocket.on("connect", () => {
             console.log(`SIO Socket Connected`);
         });

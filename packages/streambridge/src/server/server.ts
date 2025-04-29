@@ -1,14 +1,41 @@
 import express from "express";
 import path from "path";
 import { createServer } from "http";
-import io from "./io.ts";
+import { Server } from "socket.io";
+import cors from "cors"; // Import the CORS middleware
 
 const app = express();
+const corsOrigins=[
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:8088",
+]
+
+// Enable CORS for any localhost
+app.use(cors({
+    origin: corsOrigins,
+}));
 
 app.use("/", express.static(path.join(__dirname, "../../public")));
 
 export const httpServer = createServer(app);
 
+const io = new Server(httpServer, {
+    cors: {
+        origin: corsOrigins,
+        methods: ["GET", "POST"],
+    },
+});
+
+// Socket.IO connection handler
+io.on("connection", (socket) => {
+    console.log("New client connected:", socket.id);
+
+    // Rest of the code remains unchanged
+    // ...
+});
+
+// Shutdown server logic
 const shutdownServer = async () => {
     console.log("Shutting down server...");
 
@@ -18,28 +45,9 @@ const shutdownServer = async () => {
     }, 5000);
 
     try {
-        // First close Socket.IO server which manages WebSocket connections
         await new Promise((resolve) => io.close(resolve));
         console.log("Socket.IO server closed");
 
-        // Then close all active sessions
-        // const activeSessions = bedrockClient.getActiveSessions();
-        // console.log(`Closing ${activeSessions.length} active sessions...`);
-
-        // await Promise.all(activeSessions.map(async (sessionId) => {
-        //     try {
-        //         await bedrockClient.closeSession(sessionId);
-        //         console.log(`Closed session ${sessionId} during shutdown`);
-        //     } catch (error) {
-        //         console.error(
-        //             `Error closing session ${sessionId} during shutdown:`,
-        //             error,
-        //         );
-        //         bedrockClient.forceCloseSession(sessionId);
-        //     }
-        // }));
-
-        // Now close the HTTP server with a promise
         await new Promise((resolve) => httpServer.close(resolve));
         clearTimeout(forceExitTimer);
         console.log("Server shut down");
@@ -50,18 +58,16 @@ const shutdownServer = async () => {
     }
 };
 
-process.on("SIGINT", shutdownServer);
-process.on("SIGBREAK", shutdownServer);
-
-process.on("uncaughtException", (error) => {
-    console.error("Uncaught exception:", error);
-    shutdownServer();
-});
-
-// Health check endpoint
-app.get("/health", (req, res) => {
+app.get("/health", (_, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
+    shutdownServer();
+
+})
+
+
 
 await httpServer.listen(
     8080,

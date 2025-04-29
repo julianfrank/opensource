@@ -9,11 +9,11 @@ export default defineConfig({
     ],
     server: {
         host: "0.0.0.0",
-        port: 8080,
+        port: 8088,
         hmr: {
-            clientPort: 8080,
+            clientPort: 8088,
         },
-        https: true,
+        https: false,
     },
     build: {
         outDir: "bundle",
