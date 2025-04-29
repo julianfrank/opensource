@@ -11,11 +11,17 @@ interface StreamTarget {
     onStreamError?: (error: Error) => void;
 }
 
+interface PCMBufferChunk {
+    sampleRate: number;
+    channelCount: number;
+    buffer: Array<number>;
+}
+
 export class Gum2NovaSonic {
     version: string;
     gumStream: MediaStream | null = null;
     selectedTrack: MediaStreamTrack | null = null;
-    sioSocket: Socket | null = null;
+    private sioSocket: Socket | null = null;
 
     constructor() {
         this.version = version;
@@ -35,7 +41,7 @@ export class Gum2NovaSonic {
         };
     }
 
-    setStream(stream: MediaStream): void {
+    setStream = (stream: MediaStream): void => {
         if (stream === undefined) {
             throw new Error("Stream from GUM cannot be undefined");
         }
@@ -83,7 +89,7 @@ export class Gum2NovaSonic {
                 this.stop();
             }
         }
-    }
+    };
     start(): void {
         console.log(
             `GUM Stream Start Called with this.selectedTrack?.enabled=${this.selectedTrack?.enabled}`,
@@ -98,10 +104,68 @@ export class Gum2NovaSonic {
             this.selectedTrack.stop();
         }
     }
-    onStreamStart(): void {
-        console.log(`GUM Stream Started`);
-        
-    }
+    onStreamStart = async () => {
+        console.log(`GUM Stream Started with `, {
+            sioSocket: this.sioSocket,
+            gumStream: this.gumStream,
+        });
+
+        if (!this.sioSocket || !this.gumStream) return;
+
+        // Convert the MediaStream to Buffer compatible with AWS Nova Sonic and start streaming into the socket
+
+        // Create AudioContext and MediaStreamSource
+        const audioContext = new AudioContext();
+
+        const source = audioContext.createMediaStreamSource(this.gumStream);
+
+        try {
+            await audioContext.audioWorklet.addModule(
+                new URL(
+                    "./nova-sonic-egress-audio-processor.ts",
+                    import.meta.url,
+                ).href,
+            );
+
+            const audioWorkletNode = new AudioWorkletNode(
+                audioContext,
+                "nova-sonic-egress-audio-processor",
+            );
+
+            // Connect nodes
+            source.connect(audioWorkletNode);
+
+            audioWorkletNode.connect(audioContext.destination);
+
+            console.log({ audioContext, source, audioWorkletNode });
+
+            // Listen for processed audio data
+            audioWorkletNode.port.onmessage = (event) => {
+                console.log({ event });
+
+                const pcmBuffer = event.data as Int16Array;
+
+                // console.log({
+                //     audioContext,
+                //     source,
+                //     audioWorkletNode,
+                //     connected: this.sioSocket,
+                // });
+
+                // Send buffer through socket if connected
+                if (this.sioSocket?.connected) {
+                    this.sioSocket.emit("audio-data", {
+                        sampleRate: audioContext.sampleRate,
+                        channelCount: 1,
+                        buffer: Array.from(pcmBuffer),
+                    } as PCMBufferChunk);
+                }
+            };
+        } catch (error) {
+            console.error("Failed to load audio worklet:", error);
+            throw error;
+        }
+    };
     onStreamStop(): void {
         console.log(`GUM Stream Stopped`);
     }
@@ -109,11 +173,13 @@ export class Gum2NovaSonic {
         console.error(`GUM Stream Error: ${error}`);
     }
 
-    attachSIOSocket(sioSocket: Socket) {
+    attachSIOSocket = (sioSocket: Socket) => {
         console.log(`Attaching SIO Socket`, { sioSocket });
+
         this.sioSocket = sioSocket;
+
         sioSocket.on("connect", () => {
-            console.log(`SIO Socket Connected`);
+            console.log(`SIO Socket Connected`, this.sioSocket);
         });
         sioSocket.on("disconnect", () => {
             console.log(`SIO Socket Disconnected`);
@@ -148,7 +214,7 @@ export class Gum2NovaSonic {
         sioSocket.on("pong", () => {
             console.log(`SIO Socket Pong`);
         });
-    }
+    };
 }
 
 export default Gum2NovaSonic;

@@ -4,10 +4,17 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors"; // Import the CORS middleware
 
+interface PCMBufferChunk {
+    sampleRate: number;
+    channelCount: number;
+    buffer: Array<number>;
+}
+
+
 const app = express();
 const corsOrigins = [
     "http://localhost",
-    "http://localhost:8080",
+    "http://localhost:8080", 
     "http://localhost:8088",
 ];
 
@@ -32,7 +39,30 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
     console.log("New client connected:", socket.id);
 
-    socket.on("audiostream",audio=>console.log({audio}))
+            // Simplified audioInput handler without rate limiting
+            socket.on('audio-data', async (audioData: PCMBufferChunk) => {
+                try {
+                    console.log(audioData)
+                    // throw new Error("Not implemented");
+                    const audioBuffer = Buffer.from(audioData.buffer);
+                    console.log('Received audio data:', audioBuffer);
+                    // Convert base64 string to Buffer
+                    // const audioBuffer = typeof audioData === 'string'
+                    //     ? Buffer.from(audioData, 'base64')
+                    //     : Buffer.from(audioData);
+    
+                    // Stream the audio
+                    // await session.streamAudio(audioBuffer);
+
+    
+                } catch (error) {
+                    console.error('Error processing audio:', error);
+                    socket.emit('error', {
+                        message: 'Error processing audio',
+                        details: error instanceof Error ? error.message : String(error)
+                    });
+                }
+            });
 
     socket.emit("test", "testing string");
     // ...
