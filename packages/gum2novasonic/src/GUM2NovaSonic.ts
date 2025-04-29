@@ -62,22 +62,38 @@ export class Gum2NovaSonic {
             });
             this.selectedTrack = this.gumStream.getAudioTracks()[0];
             this.selectedTrack.addEventListener("ended", () => {
-                console.log(`GUM Stream End Event Triggered for track:${this.selectedTrack?.label}`);
-            })
+                console.log(
+                    `GUM Stream End Event Triggered for track:${this.selectedTrack?.label}`,
+                );
+            });
             this.selectedTrack.addEventListener("mute", () => {
-                console.log(`GUM Stream Mute Event Triggered for track:${this.selectedTrack?.label}`);
-            })
+                console.log(
+                    `GUM Stream Mute Event Triggered for track:${this.selectedTrack?.label}`,
+                );
+            });
             this.selectedTrack.addEventListener("unmute", () => {
-                console.log(`GUM Stream Unmute Event Triggered for track:${this.selectedTrack?.label}`);
-            })
+                console.log(
+                    `GUM Stream Unmute Event Triggered for track:${this.selectedTrack?.label}`,
+                );
+            });
+            if (this.selectedTrack.readyState === "live") {
+                this.start();
+            } else {
+                this.stop();
+            }
         }
     }
     start(): void {
-        console.log(`GUM Stream Start Called`);
+        console.log(
+            `GUM Stream Start Called with this.selectedTrack?.enabled=${this.selectedTrack?.enabled}`,
+        );
+        if (this.selectedTrack?.enabled) return;
+
+        this.onStreamStart?.();
     }
     stop(): void {
         console.log(`GUM Stream Stop Called`);
-        if (this.selectedTrack?.enabled){
+        if (this.selectedTrack?.enabled) {
             this.selectedTrack.stop();
         }
     }
