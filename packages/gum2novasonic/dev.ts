@@ -9,4 +9,4 @@ const mm=new MicManager({})
 mm.createMicUI({})
 
 const gum2NovaSonic=new Gum2NovaSonic()
-mm.setStreamTarget(gum2NovaSonic.setStreamTarget())
+mm.setStreamTarget(gum2NovaSonic.getStreamTarget())

@@ -14,6 +14,7 @@ interface StreamTarget {
 export class Gum2NovaSonic {
     version: string;
     gumStream: MediaStream | null = null;
+    selectedTrack: MediaStreamTrack | null = null;
 
     constructor() {
         this.version = version;
@@ -22,7 +23,7 @@ export class Gum2NovaSonic {
         );
     }
 
-    setStreamTarget(): StreamTarget {
+    getStreamTarget(): StreamTarget {
         return {
             setStream: this.setStream,
             start: this.start,
@@ -43,12 +44,42 @@ export class Gum2NovaSonic {
             });
         }
         this.gumStream = stream;
+
+        if (this.gumStream) {
+            this.gumStream.getTracks().forEach((track) => {
+                console.log(
+                    `GUM Stream Capabilities\t:\ttrack:${track.label}\ttrack.getCapabilities():\t`,
+                    track.getCapabilities(),
+                );
+                console.log(
+                    `GUM Stream Settings\t:\ttrack:${track.label}\ttrack.getSettings():\t`,
+                    track.getSettings(),
+                );
+                console.log(
+                    `GUM Stream Constraints\t:\ttrack:${track.label}\ttrack.getConstraints():\t`,
+                    track.getConstraints(),
+                );
+            });
+            this.selectedTrack = this.gumStream.getAudioTracks()[0];
+            this.selectedTrack.addEventListener("ended", () => {
+                console.log(`GUM Stream End Event Triggered for track:${this.selectedTrack?.label}`);
+            })
+            this.selectedTrack.addEventListener("mute", () => {
+                console.log(`GUM Stream Mute Event Triggered for track:${this.selectedTrack?.label}`);
+            })
+            this.selectedTrack.addEventListener("unmute", () => {
+                console.log(`GUM Stream Unmute Event Triggered for track:${this.selectedTrack?.label}`);
+            })
+        }
     }
     start(): void {
         console.log(`GUM Stream Start Called`);
     }
     stop(): void {
         console.log(`GUM Stream Stop Called`);
+        if (this.selectedTrack?.enabled){
+            this.selectedTrack.stop();
+        }
     }
     onStreamStart(): void {
         console.log(`GUM Stream Started`);

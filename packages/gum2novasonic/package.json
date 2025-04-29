@@ -1,7 +1,7 @@
 {
   "name": "@julianfrank/gum2novasonic",
   "private": false,
-  "version": "2025.4.28",
+  "version": "2025.4.29",
   "type": "module",
   "main": "./bundle/gum2novasonic_bundle.js",
   "types": "./GUM2NovaSonic.d.ts",
