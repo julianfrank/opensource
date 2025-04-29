@@ -100,6 +100,7 @@ export class Gum2NovaSonic {
     }
     onStreamStart(): void {
         console.log(`GUM Stream Started`);
+        
     }
     onStreamStop(): void {
         console.log(`GUM Stream Stopped`);

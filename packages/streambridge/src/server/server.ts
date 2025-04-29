@@ -5,15 +5,16 @@ import { Server } from "socket.io";
 import cors from "cors"; // Import the CORS middleware
 
 const app = express();
-const corsOrigins=[
+const corsOrigins = [
     "http://localhost",
     "http://localhost:8080",
     "http://localhost:8088",
-]
+];
 
 // Enable CORS for any localhost
 app.use(cors({
     origin: corsOrigins,
+    optionsSuccessStatus: 200,
 }));
 
 app.use("/", express.static(path.join(__dirname, "../../public")));
@@ -31,7 +32,9 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
     console.log("New client connected:", socket.id);
 
-    // Rest of the code remains unchanged
+    socket.on("audiostream",audio=>console.log({audio}))
+
+    socket.emit("test", "testing string");
     // ...
 });
 
@@ -64,10 +67,7 @@ app.get("/health", (_, res) => {
 process.on("uncaughtException", (error) => {
     console.error("Uncaught Exception:", error);
     shutdownServer();
-
-})
-
-
+});
 
 await httpServer.listen(
     8080,
