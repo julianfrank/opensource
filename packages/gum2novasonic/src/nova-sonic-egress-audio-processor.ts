@@ -7,8 +7,8 @@ declare class AudioWorkletProcessor {
 declare function registerProcessor(name: string, processorCtor: typeof AudioWorkletProcessor): void;
 
 class NovaSonicEgressAudioProcessor extends AudioWorkletProcessor {
-    private readonly INT16_MAX = 0x7FFF;
-    private readonly INT16_MIN = -0x8000;
+    // private readonly INT16_MAX = 0x7FFF;
+    // private readonly INT16_MIN = -0x8000;
     private readonly TARGET_SAMPLE_RATE = 16000;
     private readonly SOURCE_SAMPLE_RATE = 44100;
     private readonly RATIO = this.SOURCE_SAMPLE_RATE / this.TARGET_SAMPLE_RATE;

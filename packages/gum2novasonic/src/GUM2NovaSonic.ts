@@ -14,7 +14,7 @@ interface StreamTarget {
 interface PCMBufferChunk {
     sampleRate: number;
     channelCount: number;
-    buffer: Array<number>;
+    buffer: Int16Array;
 }
 
 export class Gum2NovaSonic {
@@ -157,7 +157,7 @@ export class Gum2NovaSonic {
                     this.sioSocket.emit("audio-data", {
                         sampleRate: audioContext.sampleRate,
                         channelCount: 1,
-                        buffer: Array.from(pcmBuffer),
+                        buffer: pcmBuffer,
                     } as PCMBufferChunk);
                 }
             };
