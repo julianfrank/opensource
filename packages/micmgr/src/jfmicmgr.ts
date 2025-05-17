@@ -1,29 +1,35 @@
-// This consolidates the various modules to be presented as a single consumable function that can be exported as a npm module
+// This module provides a microphone manager that handles audio recording functionality
+// It can work with both HTMLAudioElement and custom AudioStreamHandler targets
 import { atom } from "nanostores";
 import { version } from "../package.json";
 
+// Parameters required to initialize the microphone manager
 export interface IJFMicMgrParams {
-    rootElememt: HTMLElement;
-    audioStreamTarget: HTMLAudioElement | AudioStreamHandler;
+    rootElememt: HTMLElement; // Root DOM element where audio UI elements will be attached
+    audioStreamTarget: HTMLAudioElement | AudioStreamHandler; // Target to receive audio stream
 }
 
+// Represents a microphone device
 export interface IMicrophone {
-    deviceId: string;
-    label: string;
+    deviceId: string; // Unique identifier for the microphone
+    label: string;    // Human readable label
 }
 
+// Possible states of the microphone manager
 export type EMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
 
+// Defines valid state transitions to maintain state machine integrity
 const validStateChanges: Record<EMicMgrStates, EMicMgrStates[]> = {
     "Uninitialized": ["Idle", "Recording", "Error"],
     "Idle": ["Recording", "Error"],
-    "Recording": ["Idle", "Error"],
+    "Recording": ["Idle", "Error"], 
     "Error": ["Idle"],
 };
 
+// Callback type for state change notifications
 export type TOnStateChangeHandler = (currentState: EMicMgrStates) => void;
 
-// Custom error types for better error handling
+// Custom error hierarchy for better error handling and debugging
 class MicManagerError extends Error {
     constructor(message: string) {
         super(message);
@@ -34,7 +40,7 @@ class MicManagerError extends Error {
 class StreamError extends MicManagerError {
     constructor(message: string) {
         super(message);
-        this.name = "StreamError";
+        this.name = "StreamError"; 
     }
 }
 
@@ -45,37 +51,40 @@ class DeviceError extends MicManagerError {
     }
 }
 
+// Interface for custom audio stream handling
 export interface AudioStreamHandler {
-    setStream(stream: MediaStream): void;
-    clearStream(): void;
-    onStreamError(error: Error): void;
+    setStream(stream: MediaStream): void;     // Called when new stream is available
+    clearStream(): void;                      // Called when stream ends
+    onStreamError(error: Error): void;        // Called on stream errors
 }
 
 export function jfmicmgr(params: IJFMicMgrParams) {
     console.log(`jfmicmgr \tversion:${version}\tparameters:`, params);
 
+    // State management using nanostores atom
     const $currentState = atom<EMicMgrStates>("Uninitialized");
 
+    // Subscribe to state changes
     const onStateChange = (onStateChangeHandler: TOnStateChangeHandler) =>
         $currentState.subscribe((newState) => onStateChangeHandler(newState));
 
+    // Cache microphone list to avoid frequent device enumeration
     let micListCache: IMicrophone[] | null = null;
     let micListCacheTimestamp = Date.now();
-    const MIC_LIST_CACHE_DURATION = 54321;
+    const MIC_LIST_CACHE_DURATION = 54321; // Cache duration in milliseconds
 
+    // Audio stream handling
     let audioStream: MediaStream;
-    let audioStreamTarget: AudioStreamHandler | HTMLAudioElement =
-        params.audioStreamTarget;
+    let audioStreamTarget: AudioStreamHandler | HTMLAudioElement = params.audioStreamTarget;
 
+    // Log the type of audio target being used
     if (params.audioStreamTarget instanceof HTMLAudioElement) {
-        console.log(
-            "audioStreamTarget as HTML Element:",
-            params.audioStreamTarget,
-        );
+        console.log("audioStreamTarget as HTML Element:", params.audioStreamTarget);
     } else {
         console.log("audioStreamHandler Provided");
     }
 
+    // Stops current recording and cleans up resources
     const stopRecording = () => {
         console.log("stopRecording");
         if (audioStream) {
@@ -83,26 +92,25 @@ export function jfmicmgr(params: IJFMicMgrParams) {
                 track.stop();
                 audioStream.removeTrack(track);
             });
+            changeState("Idle");
         }
     };
 
+    // Retrieves list of available microphones with caching
     const getMicrophoneList = async (): Promise<IMicrophone[]> => {
-        // Check if we have a valid cached list
         const now = Date.now();
-        if (
-            micListCache &&
-            (now - micListCacheTimestamp) < MIC_LIST_CACHE_DURATION
-        ) {
+        // Return cached list if still valid
+        if (micListCache && (now - micListCacheTimestamp) < MIC_LIST_CACHE_DURATION) {
             return micListCache;
         }
 
         if (!navigator.mediaDevices) {
+            changeState("Error");
             throw new DeviceError("MediaDevices API not supported");
         }
 
         try {
-            // Request permission first with optimal audio settings
-            // amazonq-ignore-next-line
+            // Request initial permissions with optimal audio settings
             await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -110,6 +118,8 @@ export function jfmicmgr(params: IJFMicMgrParams) {
                     autoGainControl: true,
                 },
             });
+
+            // Enumerate available audio input devices
             const devices = await navigator.mediaDevices.enumerateDevices();
             const microphones = devices
                 .filter((device) => device.kind === "audioinput")
@@ -123,22 +133,25 @@ export function jfmicmgr(params: IJFMicMgrParams) {
             micListCacheTimestamp = now;
 
             changeState("Idle");
-
             return microphones;
+
         } catch (error) {
             console.error("Error getting microphone list:", error);
+            changeState("Error");
             throw error instanceof Error
                 ? new DeviceError(error.message)
                 : new DeviceError("Failed to get microphone list");
         }
     };
 
+    // Starts recording from specified or default microphone
     const startRecording = async (deviceId?: string): Promise<void> => {
         console.log("startRecording:", deviceId);
         if (audioStream) {
             stopRecording();
         }
 
+        // Configure audio constraints with optional device selection
         const constraints: MediaStreamConstraints = {
             audio: {
                 deviceId: deviceId ? { exact: deviceId } : undefined,
@@ -149,20 +162,21 @@ export function jfmicmgr(params: IJFMicMgrParams) {
         };
 
         try {
-            audioStream = await navigator.mediaDevices.getUserMedia(
-                constraints,
-            );
+            audioStream = await navigator.mediaDevices.getUserMedia(constraints);
 
+            // Route audio stream to appropriate target
             if (params.audioStreamTarget instanceof HTMLAudioElement) {
                 (audioStreamTarget as HTMLAudioElement).srcObject = audioStream;
                 (audioStreamTarget as HTMLAudioElement).play();
             } else {
-                (audioStreamTarget as AudioStreamHandler).setStream(
-                    audioStream,
-                );
+                (audioStreamTarget as AudioStreamHandler).setStream(audioStream);
             }
+
+            changeState("Recording");
+
         } catch (error) {
             console.error("Error starting recording:", error);
+            changeState("Error");
             const streamError = error instanceof Error
                 ? new StreamError(error.message)
                 : new StreamError("Failed to start recording");
@@ -171,15 +185,20 @@ export function jfmicmgr(params: IJFMicMgrParams) {
         }
     };
 
+    // Validates and performs state transitions
     function changeState(newState: EMicMgrStates) {
-        if (!validStateChanges[$currentState.get()].includes(newState)) {
+        const currentState = $currentState.get();
+        if (!validStateChanges[currentState].includes(newState)) {
+            console.error(`Invalid state transition attempted: ${currentState} -> ${newState}`);
             throw new MicManagerError(
-                `Invalid state change from ${$currentState.get()} to ${newState}`,
+                `Invalid state change from ${currentState} to ${newState}`
             );
         }
+        console.log(`State changing from ${currentState} to ${newState}`);
         $currentState.set(newState);
     }
 
+    // Public API
     return {
         currentState: $currentState.get(),
         onStateChange,
