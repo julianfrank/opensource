@@ -1,7 +1,7 @@
 {
-  "name": "micmgr",
+  "name": "@julianfrank/jfmicmgr",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2505.17",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "typescript": "5.8.3",
+    "vite": "6.3.5"
+  },
+  "dependencies": {
+    "nanostores": "1.0.1"
   }
 }
