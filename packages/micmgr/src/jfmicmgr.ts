@@ -45,7 +45,7 @@ class DeviceError extends MicManagerError {
     }
 }
 
-interface AudioStreamHandler {
+export interface AudioStreamHandler {
     setStream(stream: MediaStream): void;
     clearStream(): void;
     onStreamError(error: Error): void;
@@ -73,7 +73,7 @@ export function jfmicmgr(params: IJFMicMgrParams) {
             params.audioStreamTarget,
         );
     } else {
-        console.log("no HTML audioStreamTargetprovided");
+        console.log("audioStreamHandler Provided");
     }
 
     const stopRecording = () => {
@@ -156,6 +156,10 @@ export function jfmicmgr(params: IJFMicMgrParams) {
             if (params.audioStreamTarget instanceof HTMLAudioElement) {
                 (audioStreamTarget as HTMLAudioElement).srcObject = audioStream;
                 (audioStreamTarget as HTMLAudioElement).play();
+            } else {
+                (audioStreamTarget as AudioStreamHandler).setStream(
+                    audioStream,
+                );
             }
         } catch (error) {
             console.error("Error starting recording:", error);
