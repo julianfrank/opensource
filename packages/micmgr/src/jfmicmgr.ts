@@ -2,27 +2,100 @@
 import { atom } from "nanostores";
 import { version } from "../package.json";
 
-interface IJFMicMgrParams {
+export interface IJFMicMgrParams {
     rootElememt: HTMLElement;
 }
 
-type EMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
+export interface IMicrophone {
+    deviceId: string;
+    label: string;
+}
 
-function jfmicmgr(params: IJFMicMgrParams) {
-    console.log(
-        `jfmicmgr \tversion:${version}\tparameters:${JSON.stringify(params)}`,
-    );
+export type EMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
+export type TOnStateChangeHandler = (currentState: EMicMgrStates) => void;
+
+// Custom error types for better error handling
+class MicManagerError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "MicManagerError";
+    }
+}
+
+// class StreamError extends MicManagerError {
+//     constructor(message: string) {
+//         super(message);
+//         this.name = "StreamError";
+//     }
+// }
+
+class DeviceError extends MicManagerError {
+    constructor(message: string) {
+        super(message);
+        this.name = "DeviceError";
+    }
+}
+
+export function jfmicmgr(params: IJFMicMgrParams) {
+    console.log(`jfmicmgr \tversion:${version}\tparameters:`, params);
 
     const $currentState = atom<EMicMgrStates>("Uninitialized");
 
+    const onStateChange = (onStateChangeHandler: TOnStateChangeHandler) =>
+        onStateChangeHandler($currentState.get());
+
+    let micListCache: IMicrophone[] | null = null;
+    let micListCacheTimestamp = Date.now();
+    const MIC_LIST_CACHE_DURATION = 5000;
+
+    const getMicrophoneList = async (): Promise<IMicrophone[]> => {
+        // Check if we have a valid cached list
+        const now = Date.now();
+        if (
+            micListCache &&
+            (now - micListCacheTimestamp) < MIC_LIST_CACHE_DURATION
+        ) {
+            return micListCache;
+        }
+
+        if (!navigator.mediaDevices) {
+            throw new DeviceError("MediaDevices API not supported");
+        }
+
+        try {
+            // Request permission first with optimal audio settings
+            // amazonq-ignore-next-line
+            await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                },
+            });
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const microphones = devices
+                .filter((device) => device.kind === "audioinput")
+                .map((device) => ({
+                    deviceId: device.deviceId,
+                    label: device.label || `Microphone (${device.deviceId})`,
+                }));
+
+            // Update cache
+            micListCache = microphones;
+            micListCacheTimestamp = now;
+
+            return microphones;
+        } catch (error) {
+            console.error("Error getting microphone list:", error);
+            throw error instanceof Error
+                ? new DeviceError(error.message)
+                : new DeviceError("Failed to get microphone list");
+        }
+    };
+
     return {
         currentState: $currentState.get(),
-        onStateChange: (
-            onStateChangeHandler: (currentState: EMicMgrStates) => void,
-        ) => {
-            onStateChangeHandler($currentState.get());
-        },
+        onStateChange,
+        getMicrophoneList,
     };
 }
-
-export { jfmicmgr };

@@ -34,8 +34,13 @@ body {
   min-height: 100vh;
 }
 
+.heading {
+  display: flex;
+  flex-direction: row;
+}
+
 h1 {
-  font-size: 2rem;
+  font-size: 32px;
   line-height: 1.1;
 }
 
