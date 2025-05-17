@@ -77,6 +77,7 @@ export function jfmicmgr(params: IJFMicMgrParams) {
     }
 
     const stopRecording = () => {
+        console.log("stopRecording");
         if (audioStream) {
             audioStream.getTracks().forEach((track) => {
                 track.stop();
@@ -133,6 +134,7 @@ export function jfmicmgr(params: IJFMicMgrParams) {
     };
 
     const startRecording = async (deviceId?: string): Promise<void> => {
+        console.log("startRecording:", deviceId);
         if (audioStream) {
             stopRecording();
         }
