@@ -12,6 +12,13 @@ export interface IMicrophone {
 }
 
 export type EMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
+const validStateChanges: Record<EMicMgrStates, EMicMgrStates[]> = {
+    "Uninitialized": ["Idle", "Recording", "Error"],
+    "Idle": ["Recording", "Error"],
+    "Recording": ["Idle", "Error"],
+    "Error": ["Idle"],
+};
+
 export type TOnStateChangeHandler = (currentState: EMicMgrStates) => void;
 
 // Custom error types for better error handling
@@ -42,11 +49,11 @@ export function jfmicmgr(params: IJFMicMgrParams) {
     const $currentState = atom<EMicMgrStates>("Uninitialized");
 
     const onStateChange = (onStateChangeHandler: TOnStateChangeHandler) =>
-        onStateChangeHandler($currentState.get());
+        $currentState.subscribe((newState) => onStateChangeHandler(newState));
 
     let micListCache: IMicrophone[] | null = null;
     let micListCacheTimestamp = Date.now();
-    const MIC_LIST_CACHE_DURATION = 5000;
+    const MIC_LIST_CACHE_DURATION = 54321;
 
     const getMicrophoneList = async (): Promise<IMicrophone[]> => {
         // Check if we have a valid cached list
@@ -84,6 +91,8 @@ export function jfmicmgr(params: IJFMicMgrParams) {
             micListCache = microphones;
             micListCacheTimestamp = now;
 
+            changeState("Idle");
+
             return microphones;
         } catch (error) {
             console.error("Error getting microphone list:", error);
@@ -92,6 +101,15 @@ export function jfmicmgr(params: IJFMicMgrParams) {
                 : new DeviceError("Failed to get microphone list");
         }
     };
+
+    function changeState(newState: EMicMgrStates) {
+        if (!validStateChanges[$currentState.get()].includes(newState)) {
+            throw new MicManagerError(
+                `Invalid state change from ${$currentState.get()} to ${newState}`,
+            );
+        }
+        $currentState.set(newState);
+    }
 
     return {
         currentState: $currentState.get(),
