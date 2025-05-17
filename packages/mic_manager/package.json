@@ -1,38 +1,38 @@
 {
-  "name": "@julianfrank/micmanager",
-  "private": false,
-  "version": "2025.4.210",
-  "type": "module",
-  "main": "./bundle/mic_manager_bundle.js",
-  "types": "./MicManager.d.ts",
+  "name": "@julianfrank/opensource",
+  "version": "0.2505.17",
+  "description": "Open Source Projects from Julian Frank",
+  "main": "index.ts",
+  "types": "index.d.ts",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    
   },
-  "devDependencies": {
-    "@vitejs/plugin-basic-ssl": "2.0.0",
-    "typescript": "5.8.3",
-    "vite": "6.3.2",
-    "vite-plugin-css-injected-by-js": "3.5.2"
-  },
-  "exports": {
-    ".": {
-      "types": "./MicManager.d.ts",
-      "default": "./bundle/mic_manager_bundle.js"
-    }
-  },
-  "files": [
-    "bundle",
-    "src/MicManager.ts",
-    "MicManager.d.ts"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "homepage": "https://github.com/julianfrank/opensource/packages/mic_manager",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/julianfrank/opensource.git"
+  },
+  "keywords": [
+    "Julian",
+    "Frank"
+  ],
+  "author": "Julian Frank",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/julianfrank/opensource/issues"
+  },
+  "homepage": "https://github.com/julianfrank/opensource#readme",
+  "workspaces": [
+    "packages/mic_manager"
+  ],
+  "exports": {
+    "import": {
+      "types": "./index.d.ts",
+      "default": "./index.ts"
+    },
+    "default": {
+      "types": "./index.d.ts",
+      "default": "./index.ts"
+    }
   }
 }
+
