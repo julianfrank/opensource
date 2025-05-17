@@ -4,6 +4,7 @@ import { version } from "../package.json";
 
 export interface IJFMicMgrParams {
     rootElememt: HTMLElement;
+    audioStreamTarget: HTMLAudioElement | AudioStreamHandler;
 }
 
 export interface IMicrophone {
@@ -12,6 +13,7 @@ export interface IMicrophone {
 }
 
 export type EMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
+
 const validStateChanges: Record<EMicMgrStates, EMicMgrStates[]> = {
     "Uninitialized": ["Idle", "Recording", "Error"],
     "Idle": ["Recording", "Error"],
@@ -29,18 +31,24 @@ class MicManagerError extends Error {
     }
 }
 
-// class StreamError extends MicManagerError {
-//     constructor(message: string) {
-//         super(message);
-//         this.name = "StreamError";
-//     }
-// }
+class StreamError extends MicManagerError {
+    constructor(message: string) {
+        super(message);
+        this.name = "StreamError";
+    }
+}
 
 class DeviceError extends MicManagerError {
     constructor(message: string) {
         super(message);
         this.name = "DeviceError";
     }
+}
+
+interface AudioStreamHandler {
+    setStream(stream: MediaStream): void;
+    clearStream(): void;
+    onStreamError(error: Error): void;
 }
 
 export function jfmicmgr(params: IJFMicMgrParams) {
@@ -54,6 +62,28 @@ export function jfmicmgr(params: IJFMicMgrParams) {
     let micListCache: IMicrophone[] | null = null;
     let micListCacheTimestamp = Date.now();
     const MIC_LIST_CACHE_DURATION = 54321;
+
+    let audioStream: MediaStream;
+    let audioStreamTarget: AudioStreamHandler | HTMLAudioElement =
+        params.audioStreamTarget;
+
+    if (params.audioStreamTarget instanceof HTMLAudioElement) {
+        console.log(
+            "audioStreamTarget as HTML Element:",
+            params.audioStreamTarget,
+        );
+    } else {
+        console.log("no HTML audioStreamTargetprovided");
+    }
+
+    const stopRecording = () => {
+        if (audioStream) {
+            audioStream.getTracks().forEach((track) => {
+                track.stop();
+                audioStream.removeTrack(track);
+            });
+        }
+    };
 
     const getMicrophoneList = async (): Promise<IMicrophone[]> => {
         // Check if we have a valid cached list
@@ -102,6 +132,39 @@ export function jfmicmgr(params: IJFMicMgrParams) {
         }
     };
 
+    const startRecording = async (deviceId?: string): Promise<void> => {
+        if (audioStream) {
+            stopRecording();
+        }
+
+        const constraints: MediaStreamConstraints = {
+            audio: {
+                deviceId: deviceId ? { exact: deviceId } : undefined,
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+            },
+        };
+
+        try {
+            audioStream = await navigator.mediaDevices.getUserMedia(
+                constraints,
+            );
+
+            if (params.audioStreamTarget instanceof HTMLAudioElement) {
+                (audioStreamTarget as HTMLAudioElement).srcObject = audioStream;
+                (audioStreamTarget as HTMLAudioElement).play();
+            }
+        } catch (error) {
+            console.error("Error starting recording:", error);
+            const streamError = error instanceof Error
+                ? new StreamError(error.message)
+                : new StreamError("Failed to start recording");
+
+            throw streamError;
+        }
+    };
+
     function changeState(newState: EMicMgrStates) {
         if (!validStateChanges[$currentState.get()].includes(newState)) {
             throw new MicManagerError(
@@ -115,5 +178,7 @@ export function jfmicmgr(params: IJFMicMgrParams) {
         currentState: $currentState.get(),
         onStateChange,
         getMicrophoneList,
+        startRecording,
+        stopRecording,
     };
 }
