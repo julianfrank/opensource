@@ -11,7 +11,9 @@ mic.onStateChange(async (currentState) => {
     console.log(`onStateChange:${currentState}`);
     // console.log(`micList:`,await mic.getMicrophoneList())
 });
-console.log(`micList:`, await mic.getMicrophoneList());
+
+mic.getMicrophoneList().then((list) => console.log(`micList:`, list));
+
 mic.startRecording();
 window.setTimeout(() => {
     mic.stopRecording();
