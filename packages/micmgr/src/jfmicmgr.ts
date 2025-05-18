@@ -31,7 +31,7 @@ export type EMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
 // Defines valid state transitions to maintain state machine integrity
 const validStateChanges: Record<EMicMgrStates, EMicMgrStates[]> = {
     "Uninitialized": ["Idle", "Recording", "Error"],
-    "Idle": ["Recording", "Error"],
+    "Idle": ["Idle","Recording", "Error"],
     "Recording": ["Idle", "Error"], 
     "Error": ["Idle"],
 };

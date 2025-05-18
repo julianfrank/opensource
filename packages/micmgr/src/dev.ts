@@ -1,5 +1,6 @@
 import "./css/style.css";
 import { type AudioStreamHandler, jfmicmgr } from "./jfmicmgr";
+import { jfmicmgrui } from "./jfmicmgrui";
 
 const mic = jfmicmgr({
     rootElememt: document.getElementById("app") || document.body,
@@ -36,5 +37,11 @@ window.setTimeout(() => {
     mic1.startRecording();
     window.setTimeout(() => {
         mic1.stopRecording();
+        // Run this after the backend testing is done
+        jfmicmgrui({
+            rootElement: document.getElementById("app") || document.body,
+            recordButtonDisplayText: "🎙️",
+            stopButtonDisplayText: "⏹️",
+        });
     }, 3210);
 }, 3210);
