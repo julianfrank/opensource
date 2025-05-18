@@ -16,7 +16,12 @@ export const jfmicmgrui = async (params: IJFMicMgrUIParams) => {
     console.log(`jfmicmgrui \tversion:${version}\tparameters:`, params);
     const jfmicmgrui = document.createElement("div");
     jfmicmgrui.classList.add("jfmicmgrui");
-    jfmicmgrui.appendChild(createButtonCollection(params));
+
+    // Get buttons so we can control their visibility here
+    const { buttonCollection, playButton, stopButton } = createButtonCollection(
+        params,
+    );
+    jfmicmgrui.appendChild(buttonCollection);
     rootElement.appendChild(jfmicmgrui);
 
     params.MicManagerInstance.onStateChange((currentState) => {
@@ -24,31 +29,38 @@ export const jfmicmgrui = async (params: IJFMicMgrUIParams) => {
             case "Uninitialized":
                 console.debug(`onStateChange:${currentState}`);
                 jfmicmgrui.className = "jfmicmgruiuninitialized";
+                playButton.classList.add("jfmicmgruihidden");
+                stopButton.classList.add("jfmicmgruihidden");
                 break;
 
             case "Error":
                 console.error(`onStateChange:${currentState}`);
                 jfmicmgrui.className = "jfmicmgruiinerror";
+                playButton.classList.add("jfmicmgruihidden");
+                stopButton.classList.add("jfmicmgruihidden");
                 break;
 
             case "Idle":
                 jfmicmgrui.className = "jfmicmgrui";
+                playButton.classList.remove("jfmicmgruihidden");
+                stopButton.classList.add("jfmicmgruihidden");
                 console.debug(`onStateChange:${currentState}`);
                 break;
 
             case "Recording":
                 jfmicmgrui.className = "jfmicmgrui";
+                playButton.classList.add("jfmicmgruihidden");
+                stopButton.classList.remove("jfmicmgruihidden");
                 console.debug(`onStateChange:${currentState}`);
                 break;
 
             default:
                 console.error(`Invalid onStateChange:${currentState}`);
-                jfmicmgrui.className = "jfmicmgrui";
+                playButton.classList.add("jfmicmgruihidden");
+                stopButton.classList.add("jfmicmgruihidden");
                 break;
         }
     });
-
-    return jfmicmgrui;
 };
 
 function createButtonCollection(params: IJFMicMgrUIParams) {
@@ -65,41 +77,8 @@ function createButtonCollection(params: IJFMicMgrUIParams) {
     buttonCollection.appendChild(playButton);
     buttonCollection.appendChild(stopButton);
 
-    params.MicManagerInstance.onStateChange((currentState) => {
-        switch (currentState) {
-            case "Uninitialized":
-                console.debug(`onStateChange:${currentState}`);
-                playButton.className = "record-button jfmicmgruihidden";
-                stopButton.className = "stop-button jfmicmgruihidden";
-                break;
-
-            case "Error":
-                console.error(`onStateChange:${currentState}`);
-                playButton.className = "record-button jfmicmgruihidden";
-                stopButton.className = "stop-button jfmicmgruihidden";
-                break;
-
-            case "Idle":
-                playButton.className = "record-button";
-                stopButton.className = "stop-button jfmicmgruihidden";
-                console.debug(`onStateChange:${currentState}`);
-                break;
-
-            case "Recording":
-                playButton.className = "record-button jfmicmgruihidden";
-                stopButton.className = "stop-button";
-                console.debug(`onStateChange:${currentState}`);
-                break;
-
-            default:
-                playButton.className = "record-button jfmicmgruihidden";
-                stopButton.className = "stop-button jfmicmgruihidden";
-                console.error(`Invalid onStateChange:${currentState}`);
-                break;
-        }
-    });
-
-    return buttonCollection;
+    // No state change logic here; handled in main function
+    return { buttonCollection, playButton, stopButton };
 }
 
 function createRecordButton(
