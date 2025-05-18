@@ -3,7 +3,17 @@
 import { atom } from "nanostores";
 import { version } from "../package.json";
 
-// Parameters required to initialize the microphone manager
+/**
+ * Configuration parameters for initializing the microphone manager
+ * @interface IJFMicMgrParams
+ * @property {HTMLElement} rootElememt - Root DOM element where audio UI elements will be attached. 
+ *                                      This element will contain any visual components or controls
+ *                                      needed for the audio recording interface.
+ * @property {HTMLAudioElement | AudioStreamHandler} audioStreamTarget - Target that will receive and handle the audio stream.
+ *                                                                      Can be either:
+ *                                                                      - HTMLAudioElement: Standard HTML audio element that will play the audio
+ *                                                                      - AudioStreamHandler: Custom handler for processing the audio stream
+ */
 export interface IJFMicMgrParams {
     rootElememt: HTMLElement; // Root DOM element where audio UI elements will be attached
     audioStreamTarget: HTMLAudioElement | AudioStreamHandler; // Target to receive audio stream
@@ -58,7 +68,36 @@ export interface AudioStreamHandler {
     onStreamError(error: Error): void;        // Called on stream errors
 }
 
-export function jfmicmgr(params: IJFMicMgrParams) {
+interface IJFMicMgrReturn {
+    currentState: EMicMgrStates;
+    onStateChange: (onStateChangeHandler: TOnStateChangeHandler) => () => void;
+    getMicrophoneList: () => Promise<IMicrophone[]>;
+    startRecording: (deviceId?: string) => Promise<void>;
+    stopRecording: () => void;
+}
+
+/**
+ * @name jfmicmgr
+ * @description Creates a microphone manager instance that handles audio recording functionality.
+ * Supports both HTMLAudioElement and custom AudioStreamHandler targets for audio output.
+ * Manages microphone device enumeration, recording state transitions, and error handling.
+ * 
+ * @param params IJFMicMgrParams Configuration parameters for the microphone manager
+ * @param params.rootElement HTMLElement where audio UI elements will be attached
+ * @param params.audioStreamTarget Target to receive the audio stream (HTMLAudioElement or AudioStreamHandler)
+ * 
+ * @returns IJFMicMgrReturn Object containing:
+ *  - currentState: Current state of the microphone manager
+ *  - onStateChange: Function to subscribe to state changes
+ *  - getMicrophoneList: Function to get available microphones
+ *  - startRecording: Function to start recording from a microphone
+ *  - stopRecording: Function to stop current recording
+ * 
+ * @throws {DeviceError} When media devices are not supported or microphone access is denied
+ * @throws {StreamError} When there are issues starting/managing the audio stream
+ * @throws {MicManagerError} When invalid state transitions are attempted
+ */
+export function jfmicmgr(params: IJFMicMgrParams): IJFMicMgrReturn {
     console.log(`jfmicmgr \tversion:${version}\tparameters:`, params);
 
     // State management using nanostores atom
