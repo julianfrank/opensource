@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { jfmicmgr, type IJFMicMgrParams, type AudioStreamHandler, type EMicMgrStates } from './jfmicmgr';
+import { jfmicmgr, type IJFMicMgrParams, type AudioStreamHandler, type TMicMgrStates } from './jfmicmgr';
 
 describe('jfmicmgr', () => {
     let mockRootElement: HTMLElement;
@@ -172,7 +172,7 @@ describe('jfmicmgr', () => {
             };
 
             const manager = jfmicmgr(params);
-            let stateChange: EMicMgrStates="Uninitialized";
+            let stateChange: TMicMgrStates="Uninitialized";
             
             manager.onStateChange((state) => {
                 stateChange=state

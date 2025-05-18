@@ -11,12 +11,20 @@
   },
   "devDependencies": {
     "@testing-library/dom": "10.4.0",
-    "jsdom": "^26.1.0",
+    "jsdom": "26.1.0",
     "typescript": "5.8.3",
     "vite": "6.3.5",
     "vitest": "3.1.3"
   },
   "dependencies": {
     "nanostores": "1.0.1"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/jfmicmgr.ts"
+    },
+    "./jfmicmgrui": {
+      "import": "./src/jfmicmgrui.ts"
+    }
   }
 }
