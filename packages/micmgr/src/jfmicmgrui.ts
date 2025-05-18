@@ -23,26 +23,27 @@ export const jfmicmgrui = async (params: IJFMicMgrUIParams) => {
         switch (currentState) {
             case "Uninitialized":
                 console.debug(`onStateChange:${currentState}`);
-                jfmicmgrui.classList = "jfmicmgruiuninitialized";
+                jfmicmgrui.className = "jfmicmgruiuninitialized";
                 break;
 
             case "Error":
                 console.error(`onStateChange:${currentState}`);
-                jfmicmgrui.classList = "jfmicmgruiinerror";
+                jfmicmgrui.className = "jfmicmgruiinerror";
                 break;
 
             case "Idle":
-                jfmicmgrui.classList = "jfmicmgrui";
+                jfmicmgrui.className = "jfmicmgrui";
                 console.debug(`onStateChange:${currentState}`);
                 break;
 
             case "Recording":
-                jfmicmgrui.classList = "jfmicmgrui";
+                jfmicmgrui.className = "jfmicmgrui";
                 console.debug(`onStateChange:${currentState}`);
                 break;
 
             default:
                 console.error(`Invalid onStateChange:${currentState}`);
+                jfmicmgrui.className = "jfmicmgrui";
                 break;
         }
     });
@@ -68,31 +69,31 @@ function createButtonCollection(params: IJFMicMgrUIParams) {
         switch (currentState) {
             case "Uninitialized":
                 console.debug(`onStateChange:${currentState}`);
-                playButton.classList = "jfmicmgruihidden";
-                stopButton.classList = "jfmicmgruihidden";
+                playButton.className = "record-button jfmicmgruihidden";
+                stopButton.className = "stop-button jfmicmgruihidden";
                 break;
 
             case "Error":
                 console.error(`onStateChange:${currentState}`);
-                playButton.classList = "jfmicmgruihidden";
-                stopButton.classList = "jfmicmgruihidden";
+                playButton.className = "record-button jfmicmgruihidden";
+                stopButton.className = "stop-button jfmicmgruihidden";
                 break;
 
             case "Idle":
-                playButton.classList = "record-button";
-                stopButton.classList = "jfmicmgruihidden";
+                playButton.className = "record-button";
+                stopButton.className = "stop-button jfmicmgruihidden";
                 console.debug(`onStateChange:${currentState}`);
                 break;
 
             case "Recording":
-                playButton.classList = "jfmicmgruihidden";
-                stopButton.classList = "stop-button";
+                playButton.className = "record-button jfmicmgruihidden";
+                stopButton.className = "stop-button";
                 console.debug(`onStateChange:${currentState}`);
                 break;
 
             default:
-                playButton.classList = "jfmicmgruihidden";
-                stopButton.classList = "jfmicmgruihidden";
+                playButton.className = "record-button jfmicmgruihidden";
+                stopButton.className = "stop-button jfmicmgruihidden";
                 console.error(`Invalid onStateChange:${currentState}`);
                 break;
         }
@@ -105,8 +106,8 @@ function createRecordButton(
     params: { displayText: string } = { displayText: "Record" },
 ) {
     const playButton = document.createElement("button");
-    playButton.classList.add("record-button");
-    playButton.innerText = params.displayText;
+    playButton.className = "record-button";
+    playButton.textContent = params.displayText;
     return playButton;
 }
 
@@ -114,7 +115,7 @@ function createStopButton(
     params: { displayText: string } = { displayText: "Stop" },
 ) {
     const stopButton = document.createElement("button");
-    stopButton.classList.add("stop-button");
-    stopButton.innerText = params.displayText;
+    stopButton.className = "stop-button";
+    stopButton.textContent = params.displayText;
     return stopButton;
 }
