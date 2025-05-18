@@ -34,14 +34,14 @@ window.setTimeout(() => {
         rootElememt: document.getElementById("app") || document.body,
         audioStreamTarget: audioHandler,
     });
+    jfmicmgrui({
+        rootElement: document.getElementById("app") || document.body,
+        recordButtonDisplayText: "🎙️",
+        stopButtonDisplayText: "⏹️",
+        MicManagerInstance: mic1,
+    });
     mic1.startRecording();
     window.setTimeout(() => {
         mic1.stopRecording();
-        // Run this after the backend testing is done
-        jfmicmgrui({
-            rootElement: document.getElementById("app") || document.body,
-            recordButtonDisplayText: "🎙️",
-            stopButtonDisplayText: "⏹️",
-        });
     }, 3210);
 }, 3210);

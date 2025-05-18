@@ -26,10 +26,10 @@ export interface IMicrophone {
 }
 
 // Possible states of the microphone manager
-export type EMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
+export type TMicMgrStates = "Uninitialized" | "Idle" | "Recording" | "Error";
 
 // Defines valid state transitions to maintain state machine integrity
-const validStateChanges: Record<EMicMgrStates, EMicMgrStates[]> = {
+const validStateChanges: Record<TMicMgrStates, TMicMgrStates[]> = {
     "Uninitialized": ["Idle", "Recording", "Error"],
     "Idle": ["Idle","Recording", "Error"],
     "Recording": ["Idle", "Error"], 
@@ -37,7 +37,7 @@ const validStateChanges: Record<EMicMgrStates, EMicMgrStates[]> = {
 };
 
 // Callback type for state change notifications
-export type TOnStateChangeHandler = (currentState: EMicMgrStates) => void;
+export type TOnStateChangeHandler = (currentState: TMicMgrStates) => void;
 
 // Custom error hierarchy for better error handling and debugging
 class MicManagerError extends Error {
@@ -68,8 +68,8 @@ export interface AudioStreamHandler {
     onStreamError(error: Error): void;        // Called on stream errors
 }
 
-interface IJFMicMgrReturn {
-    currentState: EMicMgrStates;
+export interface IJFMicMgrReturn {
+    currentState: TMicMgrStates;
     onStateChange: (onStateChangeHandler: TOnStateChangeHandler) => () => void;
     getMicrophoneList: () => Promise<IMicrophone[]>;
     startRecording: (deviceId?: string) => Promise<void>;
@@ -101,7 +101,7 @@ export function jfmicmgr(params: IJFMicMgrParams): IJFMicMgrReturn {
     console.log(`jfmicmgr \tversion:${version}\tparameters:`, params);
 
     // State management using nanostores atom
-    const $currentState = atom<EMicMgrStates>("Uninitialized");
+    const $currentState = atom<TMicMgrStates>("Uninitialized");
 
     // Subscribe to state changes
     const onStateChange = (onStateChangeHandler: TOnStateChangeHandler) =>
@@ -225,7 +225,7 @@ export function jfmicmgr(params: IJFMicMgrParams): IJFMicMgrReturn {
     };
 
     // Validates and performs state transitions
-    function changeState(newState: EMicMgrStates) {
+    function changeState(newState: TMicMgrStates) {
         const currentState = $currentState.get();
         if (!validStateChanges[currentState].includes(newState)) {
             console.error(`Invalid state transition attempted: ${currentState} -> ${newState}`);
